@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <!-- Security policy. GitHub Pages cannot send the _headers file, so the same policy is set here. (frame-ancestors cannot be set in a page; js/theme.js blocks framing instead.) -->
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://hcaptcha.com https://*.hcaptcha.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://hcaptcha.com https://*.hcaptcha.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self' https://pkeajcmjwocckcxdiefd.supabase.co https://hcaptcha.com https://*.hcaptcha.com; frame-src https://hcaptcha.com https://*.hcaptcha.com; object-src 'none'; base-uri 'self'; form-action 'self'">
+  <meta name="referrer" content="strict-origin-when-cross-origin">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Sufiology — Vedic Astrology You Can Act On</title>
+  <meta name="theme-color" content="#ffffff">
+  <meta name="description" content="One-on-one Vedic astrology guidance sessions with personalized remedies: Dwapara (20 minutes), Treta (30 minutes) and Satya (45 minutes).">
+
+  <!-- Fonts. English: SF Pro Display (on Apple devices) with Inter as the free look-alike elsewhere.
+       Hindi: Sahitya, with Noto Serif Devanagari as a safety net for rare glyphs such as ॐ. -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,500;0,700;0,800;0,900;1,700&family=Sahitya:wght@400;700&family=Noto+Serif+Devanagari:wght@700&display=swap" rel="stylesheet">
+  <link rel="icon" href="favicon.ico" sizes="any">
+  <link rel="icon" type="image/png" sizes="32x32" href="img/favicon-32.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="img/favicon-192.png">
+  <link rel="apple-touch-icon" href="img/apple-touch-icon.png">
+  <link rel="stylesheet" href="css/site.css">
+  <script src="js/theme.js"></script>   <!-- in the head on purpose: applies light/dark before the page paints -->
+</head>
+
+<body>
+  <div id="progress" aria-hidden="true"></div>
+  <div id="curtain" aria-hidden="true"><b class="hi">ॐ</b><span>Sufiology</span></div>
+
+  <!-- ===================== Top bar ===================== -->
+  <div class="bar">
+    <a href="#top" class="brand" aria-label="Sufiology, back to top"><img src="img/sufiology-logo.png" alt="Sufiology" width="275" height="99"></a>
+    <nav id="menu" class="nv" aria-label="Main">
+      <ol>
+        <li><a class="nl" href="#top"><i class="hi" aria-hidden="true">१</i>Home</a></li>
+        <li><a class="nl" href="#about"><i class="hi" aria-hidden="true">२</i>About</a></li>
+        <li><a class="nl" href="#services"><i class="hi" aria-hidden="true">३</i>Services</a></li>
+        <li><a class="nl" href="#blog"><i class="hi" aria-hidden="true">४</i>Notes</a></li>
+        <li><a class="nl" href="#channel"><i class="hi" aria-hidden="true">५</i>Socials</a></li>
+        <li><a class="nl" href="#contact"><i class="hi" aria-hidden="true">६</i>Contact</a></li>
+        <li id="navWrite" hidden><a class="nl" href="#admin"><i class="hi" aria-hidden="true">७</i>Write</a></li>
+        <li id="navDashboard" hidden><a class="nl" href="#dashboard"><i class="hi" aria-hidden="true">८</i>Dashboard</a></li>
+        <li><a class="nl" href="#" id="authLink"><i class="hi" aria-hidden="true">९</i><span id="authText">Sign in</span></a></li>
+      </ol>
+    </nav>
+    <div class="bar-end">
+      <button id="themeToggle" class="theme-toggle" role="switch" aria-checked="false" aria-label="Dark mode">
+        <span class="theme-knob" aria-hidden="true">
+          <svg class="icon-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4.5"/><path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3M5.3 5.3l2.1 2.1M16.6 16.6l2.1 2.1M18.7 5.3l-2.1 2.1M7.4 16.6l-2.1 2.1"/></svg>
+          <svg class="icon-moon" viewBox="0 0 24 24"><path d="M20 14.5A8.5 8.5 0 0 1 9.5 4a8.5 8.5 0 1 0 10.5 10.5z"/></svg>
+        </span>
+      </button>
+      <button id="menuButton" aria-expanded="false" aria-controls="menu">Menu</button>
+      <a class="b" href="#booking">Book<span class="long-label"> a consultation</span></a>
+    </div>
+  </div>
+
+  <main id="top">
+
+    <!-- ===================== Hero (the Ganesha print is the background: img/hero-bg.webp on wide screens, img/ganesha.webp on phones; see "4. Hero" in css/site.css) ===================== -->
+    <section class="hero">
+      <canvas id="live" aria-hidden="true"></canvas>
+      <canvas id="trail" aria-hidden="true"></canvas>
+      <div class="hero-text">
+        <h1>
+          <span class="hero-1">Vedic</span>
+          <span class="hero-2">astrology</span>
+          <em>you can act on.</em>
+        </h1>
+        <p class="lede"><b>Read what the sky has already written.</b> Your astrologer reads your Vedic chart with sidereal precision and turns it into practical, real-world strategy: not just a forecast, but a plan you can act on.</p>
+        <div class="actions">
+          <a class="btn cta" href="#booking">Book a consultation</a>
+          <a class="btn outline cta" href="#ask">What do you need?</a>
+        </div>
+      </div>
+    </section>
+
+    <div class="marquee" aria-hidden="true"><div id="marqueeSigns"></div></div>
+
+    <!-- ===================== What is stuck in your life? ===================== -->
+    <section class="ask" id="ask">
+      <h2 class="h2">What is stuck in your life?</h2>
+      <p class="lead">Pick an area. You’ll see which part of the chart usually speaks to it.</p>
+      <div class="chips" id="chips"></div>
+      <div class="answer" aria-live="polite">
+        <h3 id="answerTitle">Choose one above.</h3>
+        <p id="answerText">Each answer points to the part of the chart that speaks to it, and to the sessions below.</p>
+      </div>
+    </section>
+
+    <!-- ===================== The Moon right now (real positions, see js/panchang.js) ===================== -->
+    <section class="moon" id="moon">
+      <div class="moon-grid">
+        <svg viewBox="0 0 200 200" role="img" aria-label="Current phase of the Moon">
+          <circle cx="100" cy="100" r="92" class="moon-disc" stroke-width="3"/>
+          <path id="moonLight"/>
+        </svg>
+        <div>
+          <h2 class="h2">The Moon right now.</h2>
+          <p class="moon-big" id="moonPercent"></p>
+          <dl class="moon-facts" id="moonFacts" aria-live="polite"></dl>
+          <small id="moonNote"></small>
+        </div>
+      </div>
+    </section>
+
+
+    <!-- ===================== The nine grahas (moved here from the hero) ===================== -->
+    <section class="grahas" id="grahas">
+      <h2 class="h2">Nine grahas, always moving.</h2>
+      <p class="lead">Tap a planet to see what it governs. Press and hold on the orbits for a moment and they will line up.</p>
+      <canvas id="sky" role="img" aria-label="Orbiting grahas. Tap a planet to learn what it governs."></canvas>
+      <div class="planet-info" id="planetInfo" aria-live="polite"><b>Tap a planet</b>The nine grahas are circling. Tap one to see what it governs.</div>
+    </section>
+
+    <!-- ===================== Which graha rules your birthday? ===================== -->
+    <section class="weekday" id="weekday">
+      <h2 class="h2">Which graha rules your birthday?</h2>
+      <p class="lead">Every weekday belongs to a graha. Pick your date of birth and see yours.</p>
+      <input type="date" id="birthday" aria-label="Date of birth">
+      <div class="weekday-out" id="weekdayOut" aria-live="polite">Pick a date.</div>
+    </section>
+
+    <!-- ===================== Twelve signs, one wheel (moved here from the old houses chart spot) ===================== -->
+    <section class="wheel" id="rashi">
+      <h2 class="h2">Twelve signs, one wheel.</h2>
+      <p class="lead">Scroll to spin it. Tap a sign to read it.</p>
+      <div class="wheel-box">
+        <svg id="wheel" viewBox="-250 -250 500 500" role="group" aria-label="The twelve rashis">
+          <circle class="wheel-ring" r="235"/>
+          <circle class="wheel-ring" r="150"/>
+          <circle r="195" fill="none" stroke="#E50914" stroke-width="2" stroke-dasharray="3 9"/>
+          <g id="wheelSigns"></g>
+        </svg>
+        <div class="wheel-read" id="wheelRead" aria-live="polite"></div>
+      </div>
+    </section>
+
+    <!-- ===================== Services ===================== -->
+    <section id="services">
+      <h2 class="h2">Choose your session.</h2>
+      <p class="lead">Three sessions, by depth and length. Every one is one-on-one with Nishaad Sharma, and every one includes remedies.</p>
+      <div class="cards">
+        <article class="card card-dwapara">
+          <span class="watermark hi" aria-hidden="true">द्वापर</span>
+          <div>
+            <h3>Dwapara</h3>
+            <p class="price">₹2000</p>
+            <p class="length">Detailed 20 minute guidance session</p>
+            <p>A comprehensive future roadmap providing a detailed, multi-dimensional analysis of your timeline, upcoming life cycles, major milestones, and deeply personalized remedies.</p>
+          </div>
+          <a href="#booking" data-tier="dwapara">Book Dwapara</a>
+        </article>
+        <article class="card card-treta">
+          <span class="watermark hi" aria-hidden="true">त्रेता</span>
+          <div>
+            <h3>Treta</h3>
+            <p class="price">₹3200</p>
+            <p class="length">Detailed 30 minute guidance session</p>
+            <p>Focused future predictions and key life trends. Perfect for immediate clarity, mapping upcoming shifts, and receiving customized remedies tailored to your path.</p>
+          </div>
+          <a href="#booking" data-tier="treta">Book Treta</a>
+        </article>
+        <article class="card card-satya">
+          <span class="watermark hi" aria-hidden="true">सत्य</span>
+          <div>
+            <h3>Satya</h3>
+            <p class="price">₹6000</p>
+            <p class="length">Detailed 45 minute guidance session</p>
+            <p>The ultimate master blueprint. Combines exhaustive future prophecies with an exclusive pending karma reading to unlock deep, foundational life patterns, along with premium, layered remedies.</p>
+          </div>
+          <a href="#booking" data-tier="satya">Book Satya</a>
+        </article>
+      </div>
+    </section>
+
+    <!-- ===================== How it works ===================== -->
+    <section class="steps">
+      <h2 class="h2">How it works.</h2>
+      <ol class="rail">
+        <li><b class="hi" aria-hidden="true">१</b><h3>Request a time</h3><p>Create an account, choose a session, and tell Nishaad Sharma your preferred date and time and your concern.</p></li>
+        <li><b class="hi" aria-hidden="true">२</b><h3>Confirm your session</h3><p>The Sufiology team confirms your slot, arranges payment with you directly, and sends the video call link by email or WhatsApp.</p></li>
+        <li><b class="hi" aria-hidden="true">३</b><h3>Meet one-on-one</h3><p>Join the call for a personal consultation on your chart.</p></li>
+      </ol>
+    </section>
+
+    <!-- ===================== Journal ===================== -->
+    <section class="journal" id="journal">
+      <h2 class="h2">The journal.</h2>
+      <p class="lead">Plain-language writing on charts, timing, and remedies. Read the latest notes.</p>
+      <div class="journal-row">
+        <article><h3>Houses and what they govern</h3><p>How each of the twelve bhavas shows up in real decisions.</p><span class="journal-word hi" aria-hidden="true">भाव</span></article>
+        <article><h3>Timing and dashas</h3><p>Why some periods feel stuck, and how to plan around them.</p><span class="journal-word hi" aria-hidden="true">दशा</span></article>
+        <article><h3>Remedies that are practical</h3><p>Steps tied to one area of life, not a long list of rituals.</p><span class="journal-word hi" aria-hidden="true">उपाय</span></article>
+      </div>
+      <a class="btn" href="#blog" style="margin-top:30px">Read the notes</a>
+      <a class="btn" href="https://www.youtube.com/@nishaadsharma" target="_blank" rel="noopener" style="margin-top:30px">Watch on YouTube</a>
+    </section>
+
+    <!-- ===================== YouTube ===================== -->
+    <section class="youtube" id="channel">
+      <h2 class="h2">Start with the channel.</h2>
+      <p class="lead" style="margin:16px auto 0">New to Vedic astrology? Nishaad Sharma explains it on YouTube.</p>
+      <a class="youtube-badge" href="https://www.youtube.com/@nishaadsharma" target="_blank" rel="noopener" aria-label="Watch Sufiology on YouTube">
+        <svg viewBox="0 0 300 300" aria-hidden="true">
+          <defs><path id="youtubeCircle" d="M150 150m-112 0a112 112 0 1 1 224 0a112 112 0 1 1-224 0"/></defs>
+          <circle cx="150" cy="150" r="147" fill="#ffffff" stroke="#000000" stroke-opacity=".25" stroke-width="2"/>
+          <text><textPath href="#youtubeCircle">WATCH ON YOUTUBE • WATCH ON YOUTUBE • </textPath></text>
+        </svg>
+      </a>
+    </section>
+
+    <!-- ===================== About ===================== -->
+    <section id="about">
+      <div class="about">
+        <div>
+          <h2 class="h2">One person. No hand-offs.</h2>
+          <p class="lead">Your astrologer is Nishaad Sharma. The person who studies your chart is the person on your call, start to finish.</p>
+          <p class="lead">Your birth details and questions stay with one practitioner, and the result is a plan you can follow, whether the question is a career decision, a relationship, or a stretch of life that feels stuck.</p>
+        </div>
+        <aside class="blob"><h3>Your privacy</h3><p>Your birth details and concern are used only to prepare your session. They are stored securely and seen only by Nishaad Sharma, and you can ask for them to be deleted at any time.</p></aside>
+      </div>
+    </section>
+
+    <div class="marquee marquee-dark" aria-hidden="true"><div id="marqueeWords"></div></div>
+
+    <!-- ===================== Booking ===================== -->
+    <section class="booking" id="booking">
+      <h2 class="h2">Book a consultation.</h2>
+      <p class="lead">Create an account, choose a session, and send your request with your preferred date and time. Nishaad Sharma confirms by email or WhatsApp, arranges payment with you directly, and sends your video call link.</p>
+
+      <a class="badge" href="#tiers" aria-label="Jump to the booking options">
+        <svg viewBox="0 0 300 300" aria-hidden="true">
+          <defs><path id="badgeCircle" d="M150 150m-112 0a112 112 0 1 1 224 0a112 112 0 1 1-224 0"/></defs>
+          <circle class="badge-disc" cx="150" cy="150" r="148"/>
+          <text><textPath href="#badgeCircle">BOOK A CONSULTATION • BOOK A CONSULTATION • </textPath></text>
+        </svg>
+      </a>
+
+      <div class="tiers" id="tiers" role="radiogroup" aria-label="Choose a session"></div>
+      <div id="bookingActions" class="booking-actions"></div>
+      <p id="bookingMessage" class="booking-message" role="status"></p>
+
+      <form id="bookingForm" class="slot" hidden>
+        <h3>Request your session</h3>
+
+        <label class="fld">Your name
+          <input id="fName" required autocomplete="name" maxlength="120">
+        </label>
+        <label class="fld">Preferred date
+          <input id="fDate" type="date" required>
+        </label>
+        <label class="fld">Preferred time
+          <input id="fTime" type="time" required>
+        </label>
+
+        <label class="fld">WhatsApp number
+          <div class="phone">
+            <select id="fCountry" aria-label="Country code"></select>
+            <input id="fPhone" type="tel" inputmode="numeric" required autocomplete="tel-national" placeholder="10 digits">
+          </div>
+        </label>
+
+        <label class="fld">Email for the reply
+          <input id="fEmail" type="email" required autocomplete="email" maxlength="200">
+        </label>
+        <label class="fld">Date of birth
+          <input id="fBirthDate" type="date" required>
+        </label>
+        <label class="fld">Time of birth
+          <input id="fBirthTime" type="time" required>
+        </label>
+        <label class="fld">Place of birth
+          <input id="fBirthPlace" required maxlength="120" placeholder="City, state, country">
+        </label>
+        <label class="fld">Your concern (in detail)
+          <textarea id="fConcern" rows="5" required maxlength="2000" placeholder="Tell Nishaad what you want clarity on, and anything that would help to know."></textarea>
+        </label>
+
+        <p class="fine" id="timezoneNote"></p>
+        <p class="fine">You can send up to 2 requests per week from one device. Payment is arranged directly with Nishaad Sharma after your slot is confirmed.</p>
+        <label class="consent"><input id="fConsent" type="checkbox" required><span>I have read and agree to the <a href="#terms">Terms of service</a> and the <a href="#privacy">Privacy notice</a>.</span></label>
+        <label class="consent"><input id="fConsentData" type="checkbox" required><span>I agree that Sufiology may use my birth details and my message to prepare and hold my consultation. I can withdraw this agreement at any time by messaging sufiology8@gmail.com or +91 70096 26556 on WhatsApp.</span></label>
+        <label class="consent"><input id="fConsentAge" type="checkbox" required><span>I am 18 or older, or my parent or guardian has agreed to this request.</span></label>
+        <button class="btn" type="submit">Send my request</button>
+      </form>
+    </section>
+
+    <!-- ===================== Contact ===================== -->
+    <section class="contact" id="contact">
+      <h2 class="h2">Questions before you book?</h2>
+      <p class="lead">For One2One consultation details, message Nishaad Sharma on WhatsApp. Calls are not taken.</p>
+      <a class="mail" href="mailto:sufiology8@gmail.com">sufiology8@gmail.com</a>
+      <a class="btn" href="https://wa.me/917009626556?text=Hello%2C%20I%20would%20like%20to%20know%20more%20about%20a%20consultation." target="_blank" rel="noopener">Message on WhatsApp</a>
+      <a class="btn" href="https://www.instagram.com/sufiologyy/" target="_blank" rel="noopener">Instagram @sufiologyy</a>
+      <a class="btn" href="https://chat.whatsapp.com/LPbxJmQD6dOBwZtDQI1Rzj" target="_blank" rel="noopener">WhatsApp Community</a>
+      <a class="btn" href="https://www.youtube.com/@nishaadsharma" target="_blank" rel="noopener">Watch on YouTube</a>
+    </section>
+
+    <!-- ===================== Hidden views (shown by #blog, #admin, #dashboard) ===================== -->
+    <section class="view" id="blogView">
+      <header class="blog-hero" id="blogHero">
+        <div class="blog-hero-text">
+          <p class="eyebrow">The journal</p>
+          <h1 class="h2">The notes.</h1>
+          <p class="lead">Plain-language writing on charts, timing, and remedies, by Nishaad Sharma.</p>
+        </div>
+        <span class="blog-hero-word hi" aria-hidden="true">लेख</span>
+        <div class="blog-ribbon" aria-hidden="true"><div class="hi">भाव ✦ दशा ✦ उपाय ✦ भाव ✦ दशा ✦ उपाय ✦ भाव ✦ दशा ✦ उपाय ✦ भाव ✦ दशा ✦ उपाय ✦ भाव ✦ दशा ✦ उपाय ✦ भाव ✦ दशा ✦ उपाय ✦ भाव ✦ दशा ✦ उपाय ✦ भाव ✦ दशा ✦ उपाय ✦ भाव ✦ दशा ✦ उपाय ✦ भाव ✦ दशा ✦ उपाय ✦ भाव ✦ दशा ✦ उपाय ✦ भाव ✦ दशा ✦ उपाय ✦ </div></div>
+      </header>
+      <div class="page wide"><div id="blogList"></div></div>
+    </section>
+    <section class="view" id="adminView"><div class="page"><h1 class="h2">Write.</h1><p class="page-intro">Write, edit and publish notes.</p><div id="adminBody"></div></div></section>
+    <section class="view" id="dashboardView"><div class="page"><h1 class="h2">Dashboard.</h1><p class="page-intro">Booking requests from clients. Reply by email or WhatsApp to confirm.</p><div id="dashboardBody"></div></div></section>
+    <section class="view legal" id="privacyView"><div class="page">
+      <h1 class="h2">Privacy notice.</h1>
+      <p class="page-intro">Last updated: 19 October 2026</p>
+
+      <div class="legal-sum">
+        <h2>The short version</h2>
+        <ul>
+          <li>We collect only what we need to run your consultation.</li>
+          <li>We never sell your information or use it for advertising.</li>
+          <li>You can ask us to show, correct or delete your information at any time.</li>
+          <li>The details are below.</li>
+        </ul>
+      </div>
+
+      <h2>1. Who we are</h2>
+      <p>Sufiology is a Vedic astrology consultation service run by Nishaad Sharma. In this notice, “we”, “us” and “Sufiology” mean Sufiology and Nishaad Sharma. We decide why and how your personal information is used.</p>
+      <p>For any privacy question, write to <a href="mailto:sufiology8@gmail.com">sufiology8@gmail.com</a> or message us on WhatsApp at +91 70096 26556.</p>
+
+      <h2>2. What we collect, and why</h2>
+      <h3>When you create an account</h3>
+      <ul>
+        <li>Your email address and a password. Our sign-in provider stores the password in a scrambled form. We cannot see it.</li>
+        <li>If you use “Continue with Google”: your Google account email, and your name and profile picture if Google shares them.</li>
+      </ul>
+      <p><b>Why:</b> so you can sign in and see your own requests.</p>
+
+      <h3>When you send a booking request</h3>
+      <ul>
+        <li>Your name, WhatsApp number (with country code) and the email address for our reply.</li>
+        <li>Your preferred date and time, and your time zone.</li>
+        <li>Your date, time and place of birth.</li>
+        <li>The concern you describe, and the session you chose.</li>
+      </ul>
+      <p><b>Why:</b> to prepare your reading, confirm your slot, contact you and hold your session.</p>
+
+      <h3>To keep the website safe</h3>
+      <ul>
+        <li>A random ID stored in your browser. It is not linked to your name.</li>
+        <li>A scrambled (hashed) version of your network address (IP address). We do not store the network address itself.</li>
+        <li>A security check (hCaptcha) when you sign in or create an account. hCaptcha may collect technical details about your browser and device.</li>
+      </ul>
+      <p><b>Why:</b> to apply the limit of 2 booking requests per week and to stop spam and automated abuse.</p>
+
+      <h3>Sensitive information</h3>
+      <p>Birth details and the concern you describe can be personal. Only share what you are comfortable sharing. We use it only for your consultation.</p>
+
+      <h2>3. What we do not do</h2>
+      <ul>
+        <li>We do not sell your information.</li>
+        <li>We do not use your birth details or your concern for advertising.</li>
+        <li>We do not collect payment details on this website. Our team arranges payment with you directly by UPI, usually before the session, after we confirm your slot. Your bank and UPI app handle the payment. We only see what they show us, such as your name and UPI ID.</li>
+        <li>We do not use advertising cookies, tracking cookies or visitor analytics.</li>
+      </ul>
+
+      <h2>4. Who else handles your information</h2>
+      <p>We use these services to run the website. Each one handles information only to provide its service.</p>
+      <ul>
+        <li><b>Supabase</b> stores accounts, booking requests and notes, and provides sign-in. The data is stored in Singapore.</li>
+        <li><b>Resend</b> sends us an email when you send a request.</li>
+        <li><b>hCaptcha</b> provides the security check.</li>
+        <li><b>Google</b> provides the fonts used on this site, so your browser contacts Google’s servers when the page loads. Google also provides “Continue with Google” if you choose it.</li>
+        <li><b>GitHub</b> (owned by Microsoft) hosts the website files. GitHub may log the network address of visitors to deliver and protect its service.</li>
+        <li><b>WhatsApp (Meta) and your email provider</b> carry our messages when you contact us or we reply to you. Their own policies apply.</li>
+        <li><b>YouTube:</b> if you follow a link to our channel, YouTube’s policies apply once you open it.</li>
+      </ul>
+      <p>Some of these services may store information outside India.</p>
+
+      <h2>5. How long we keep your information</h2>
+      <ul>
+        <li><b>Booking requests</b> (including the message you wrote) are deleted 12 months after the request.</li>
+        <li><b>Accounts</b> are kept until you ask us to delete them. We may also delete an account that has not been used for 2 years.</li>
+        <li><b>Email and WhatsApp conversations</b> stay in those apps. If you ask, we will delete them from our side.</li>
+      </ul>
+
+      <h2>6. Cookies and browser storage</h2>
+      <p>This site does not use advertising cookies. It keeps a few small items in your browser so it can work: your sign-in session, your light or dark mode choice, and the random ID used for the weekly request limit. The security check (hCaptcha) may also set its own technical cookies or storage.</p>
+
+      <h2>7. Your rights</h2>
+      <p>You can ask us to:</p>
+      <ul>
+        <li>show you what information we hold about you,</li>
+        <li>correct it,</li>
+        <li>delete it,</li>
+        <li>stop using it for a purpose you did not agree to, or</li>
+        <li><b>withdraw your consent</b> at any time. Withdrawing does not affect what we did before you withdrew.</li>
+      </ul>
+      <p>Write to <a href="mailto:sufiology8@gmail.com">sufiology8@gmail.com</a> or message us on WhatsApp at +91 70096 26556. We will reply within 30 days. If you are not satisfied with our reply, you can complain to the Data Protection Board of India, or to the data protection authority where you live.</p>
+
+      <h2>8. People under 18</h2>
+      <p>People under 18 may use this service only with the approval of a parent or guardian. Their parent or guardian must agree to the request and to the use of the details. Before we confirm a session for someone under 18, we may ask the parent or guardian to confirm by WhatsApp or email. We do not use children’s information for advertising or tracking.</p>
+
+      <h2>9. Security</h2>
+      <p>Information travels over an encrypted connection (HTTPS). Your birth details and the concern you describe are seen only by Nishaad Sharma. A second team member looks after payments, rescheduling and the technical side of the website and database. They do not look at your birth details or your concern. The admin account is protected by two-step sign-in. No system is perfectly secure. If a data breach affects you, we will tell you as the law requires.</p>
+
+      <h2>10. Changes to this notice</h2>
+      <p>If we change this notice, we will update the date at the top. If the change is important, we will tell account holders by email.</p>
+      <p><a href="#terms">Read the Terms of service</a> · <a href="#top">Back to the home page</a></p>
+    </div></section>
+    <section class="view legal" id="termsView"><div class="page">
+      <h1 class="h2">Terms of service.</h1>
+      <p class="page-intro">Last updated: 19 October 2026</p>
+
+      <div class="legal-sum">
+        <h2>The main points</h2>
+        <ul>
+          <li>A booking request is not a booking. Your session is confirmed only when we tell you so by email or WhatsApp.</li>
+          <li>A reading is guidance. It is not a guarantee, and it is not medical, legal or financial advice.</li>
+          <li>Payments are not refunded. If you cannot attend, or we cannot hold the session at the agreed time, we reschedule it. Refunds are given only in an extreme emergency, such as a medical emergency or a death in your close family.</li>
+          <li>To reschedule, message us at least 1 hour before the session.</li>
+          <li>Prices are in rupees. We are not registered for GST, so no GST is added.</li>
+        </ul>
+      </div>
+
+      <h2>1. What Sufiology offers</h2>
+      <p>Sufiology offers one-to-one Vedic astrology consultations with Nishaad Sharma by video call. The website also has written notes about astrology. In these terms, “we”, “us” and “Sufiology” mean Sufiology and Nishaad Sharma.</p>
+
+      <h2>2. What a reading is, and what it is not</h2>
+      <ul>
+        <li>Astrology is a traditional system of interpretation. A reading is for guidance, reflection and planning.</li>
+        <li>A reading does not guarantee any result.</li>
+        <li>A reading is not medical, mental health, legal, financial or investment advice. Please ask a qualified professional about those matters. Do not make a major health, legal or money decision based only on a reading.</li>
+        <li>Remedies are traditional suggestions. They are not a cure and they are not medical treatment. They do not replace medical care.</li>
+        <li>We may decline to answer a question we are not comfortable answering.</li>
+      </ul>
+
+      <h2>3. Who can book</h2>
+      <ul>
+        <li>You must be 18 or older. A person under 18 can book only with the approval of a parent or guardian.</li>
+        <li>You must give correct information, especially your date, time and place of birth. A reading depends on them.</li>
+        <li>If the details you gave are wrong or guessed, the reading may be inaccurate. This is not a reason for a refund.</li>
+      </ul>
+
+      <h2>4. How booking works</h2>
+      <ol>
+        <li>You create an account and send a booking request with your preferred date and time.</li>
+        <li>We reply by email or WhatsApp. We may confirm your request, or suggest another time.</li>
+        <li>Your session is booked only when we confirm it. Sending a request does not book it.</li>
+        <li>We then arrange payment with you (see section 6).</li>
+        <li>We send you the video call link.</li>
+      </ol>
+      <ul>
+        <li>You can send up to 2 requests per week from one device.</li>
+        <li>We do not take phone calls. Please message us on WhatsApp.</li>
+      </ul>
+
+      <h2>5. Sessions and prices</h2>
+      <ul>
+        <li><b>Dwapara:</b> 20 minutes, ₹2000.</li>
+        <li><b>Treta:</b> 30 minutes, ₹3200.</li>
+        <li><b>Satya:</b> 45 minutes, ₹6000. It includes the pending karma reading.</li>
+      </ul>
+      <p>Every session includes remedies. Prices are in Indian rupees. We are not registered for GST, so no GST is added. The price we confirm to you is the price you pay. If our prices change, the price at the time we confirm your slot applies.</p>
+
+      <h2>6. Payment</h2>
+      <p>You do not pay on this website. Payment is usually made before the session. The Sufiology team handles payment. After we confirm your slot, the team will arrange payment with you directly, by UPI. We will tell you the amount, and how and when to pay.</p>
+
+      <h2>7. Late arrival, rescheduling and cancelling</h2>
+      <ul>
+        <li><b>To reschedule or cancel,</b> message us on WhatsApp or email at least 1 hour before the session. We will give you a new time at no extra cost.</li>
+        <li><b>If you join up to 20 minutes late,</b> we still give you the full session time you booked. For example, a 30-minute session is still 30 minutes, starting when you join.</li>
+        <li><b>If you are more than 20 minutes late,</b> we reschedule the consultation to another time.</li>
+        <li><b>If we cannot hold the session at the time we agreed,</b> we will offer you another time at no extra cost.</li>
+      </ul>
+
+      <h2>8. Refunds</h2>
+      <ul>
+        <li><b>Payments are not refunded.</b> If you cannot attend, you can reschedule (see section 7).</li>
+        <li><b>If we cannot hold the session at the agreed time,</b> we reschedule it. We do not refund in this case.</li>
+        <li><b>Extreme emergencies:</b> we may refund a payment in an extreme emergency. Examples are a medical emergency, or a death in your close family. We decide each case. Message us as soon as you can and tell us what happened.</li>
+      </ul>
+
+      <h2>9. Respectful behaviour</h2>
+      <p>Please be respectful. We may end a session, or stop serving someone, if they are abusive or misuse the website. Misuse includes trying to get around the weekly request limit, sending spam, or attacking the site.</p>
+
+      <h2>10. Recording and privacy of sessions</h2>
+      <ul>
+        <li>We do not currently record sessions. If we ever do, we will tell you before the session starts.</li>
+        <li>Please do not record or share a session without our permission.</li>
+        <li>What you tell us is kept private under our <a href="#privacy">Privacy notice</a>, except where the law requires us to share it.</li>
+      </ul>
+
+      <h2>11. Content on this website</h2>
+      <p>The notes, text, images and designs on this site belong to Sufiology or their owners. Please do not copy them for commercial use without our written permission. Notes on this site are general information. They are not a personal reading.</p>
+
+      <h2>12. Links to other sites</h2>
+      <p>This site links to WhatsApp, YouTube and other sites. We are not responsible for their content or how they handle your information.</p>
+
+      <h2>13. Our responsibility</h2>
+      <p>As far as the law allows, we are not responsible for decisions you make based on a reading, or for losses that come from those decisions. Nothing in these terms takes away a right you have under the law that cannot be taken away.</p>
+
+      <h2>14. If the website is unavailable</h2>
+      <p>We try to keep the website working, but we cannot promise it will always be available.</p>
+
+      <h2>15. Changes to these terms</h2>
+      <p>We may update these terms. The date at the top shows the latest version. A change does not affect a session we have already confirmed. If you keep using the site after a change, you accept the new terms.</p>
+
+      <h2>16. Law and complaints</h2>
+      <p>These terms follow the laws of India. The courts at Chandigarh decide disputes. For a question or complaint, write to <a href="mailto:sufiology8@gmail.com">sufiology8@gmail.com</a> or message us on WhatsApp at +91 70096 26556. We will reply within 30 days.</p>
+      <p><a href="#privacy">Read the Privacy notice</a> · <a href="#top">Back to the home page</a></p>
+    </div></section>
+  </main>
+
+  <footer>
+    <div class="footer-mark" aria-hidden="true">Sufiology</div>
+    <div class="footer-row"><p>© 2026 Sufiology. Private astrology consultations.</p><p class="footer-legal"><a href="#privacy">Privacy</a> · <a href="#terms">Terms</a></p><a href="#top">Back to top</a></div>
+  </footer>
+
+  <script src="js/config.js"></script>
+  <script src="js/data.js"></script>
+  <script src="js/panchang.js"></script>
+  <script src="js/visuals.js"></script>
+  <script src="js/sky.js"></script>
+  <script src="js/live.js"></script>
+  <script src="js/backend.js"></script>
+  <script src="js/datetime.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,796 @@
+/* ==========================================================================
+   Sufiology stylesheet. Read top to bottom: it follows the page.
+
+   1. Settings (colours, fonts, letter spacing)   <- change the look here
+   2. Base
+   3. Top bar and menu
+   4. Hero
+   5. Marquees
+   6. Home page sections, in page order
+   7. Booking
+   8. Contact and footer
+   9. Sign-in box and blog
+   10. Admin pages (Write and Dashboard)
+   11. Small screens and reduced motion
+   ========================================================================== */
+
+
+/* ---------- 1. Settings ---------- */
+:root {
+  /* Colours. The site uses only black, white and red. The one yellow allowed is pure
+     yellow #FFFF00 (CMYK yellow), kept for the hero headline and nowhere else. */
+  --yolk:  #ffff00;                  /* the owner's yellow, used sparingly */
+  --ink:   #000000;
+  --red:   #E50914;                  /* Netflix red */
+  --deep:  #B20710;                  /* Netflix dark red for the big red bands */
+  --cream: #ffffff;                  /* white (the old name is kept so the rest of the file still reads) */
+  --pop:   #ffffff;                  /* accent text and lines that sit on red or black bands */
+
+  /* Theme tokens. These are the ONLY values that change between light and dark mode.
+     Light mode: white pages, black text and borders, bold red accents. Dark mode overrides them in the next block. */
+  --surface-1: #ffffff;              /* bright sections: grahas, wheel, booking */
+  --surface-2: #ffffff;              /* soft sections and boxes: steps, YouTube, blog, forms */
+  --field: #ffffff;                  /* text boxes */
+  --fg: var(--ink);                  /* text and lines on those surfaces */
+  --edge: var(--ink);                /* borders around boxes */
+  --edge-shadow: var(--red);         /* hard shadow under boxes */
+  --faint-line: rgba(0, 0, 0, .25);
+  --accent: var(--red);              /* red text and numbers on those surfaces */
+  --btn-solid: var(--ink);           /* solid buttons */
+  --btn-solid-text: #ffffff;
+  --disc: rgba(229, 9, 20, .12);      /* pale disc behind the booking badge */
+  --toggle-track: var(--ink);        /* the sun / moon slider */
+  --toggle-knob: #ffffff;
+  --toggle-icon: var(--ink);
+  --scheme: light;                   /* tells form lists (country dropdown) which colours to use */
+
+  /* Coloured bands and cards. They are tokens so dark mode can restyle them. */
+  --band-red: var(--red);            /* Moon section, footer, marquee strip */
+  --band-red-text: #ffffff;
+  --band-deep: var(--deep);          /* "What is stuck", journal, contact */
+  --band-ink: var(--ink);            /* weekday finder, answer box, dark marquee, planet note */
+  --band-ink-text: #ffffff;
+  --strip-bg: var(--red);            /* the tilted scrolling strips */
+  --strip-text: #ffffff;
+  --brand-bg: #ffffff;               /* the logo pill, top left (the logo is black) */
+  --card-1: var(--ink);              /* Dwapara */
+  --card-1-text: #ffffff;
+  --card-2: #ffffff;                 /* Treta */
+  --card-2-text: var(--ink);
+  --card-3: var(--red);              /* Satya */
+  --card-3-text: #ffffff;
+  --card-3-accent: #ffffff;
+  --post-2: var(--red);              /* every 2nd blog card */
+  --post-2-text: #ffffff;
+
+    /* Fonts. SF Pro Display is Apple's font: it shows on Apple devices only
+     (its licence does not allow hosting it on a website). Everyone else gets Inter, its closest free match.
+     Hindi uses Sahitya. */
+  --font-en: "SF Pro Display", -apple-system, BlinkMacSystemFont, "Inter", system-ui, "Segoe UI", Roboto, sans-serif;
+  --font-hi: "Sahitya", "Noto Serif Devanagari", serif;
+
+  /* Letter spacing ("tracking"). English -2.5 percent, Hindi -5.5 percent.
+     These two lines are the only place to change it. */
+  --track-en: -0.025em;
+  --track-hi: -0.055em;
+  --track-hi-display: -0.02em;   /* big Hindi words only: -5.5% made conjuncts such as क्र collide */
+
+  /* Side padding of the page */
+  --gutter: clamp(18px, 5vw, 64px);
+
+  color-scheme: dark;
+}
+
+
+/* Dark mode. Switched by js/theme.js, which sets data-theme="dark" on <html>. */
+:root[data-theme="dark"] {
+  /* Dark mode: black pages, white text, bold red accents. */
+  --ink:   #000000;
+  --cream: #ffffff;
+  --red:   #E50914;                  /* Netflix red, the same in dark mode */
+  --deep:  #B20710;
+
+  --surface-1: #000000;
+  --surface-2: #0b0b0b;
+  --field: #141414;
+  --fg: #ffffff;
+  --edge: #ffffff;
+  --edge-shadow: var(--red);
+  --faint-line: rgba(255, 255, 255, .25);
+  --accent: var(--red);
+  --btn-solid: var(--red);
+  --btn-solid-text: #ffffff;
+  --disc: rgba(255, 255, 255, .08);
+  --toggle-track: #ffffff;
+  --toggle-knob: #000000;
+  --toggle-icon: #ffffff;
+  --scheme: dark;
+
+  --band-red: #E50914;
+  --band-red-text: #ffffff;
+  --band-deep: #B20710;
+  --band-ink: #000000;
+  --band-ink-text: #ffffff;
+  --strip-bg: #E50914;
+  --strip-text: #ffffff;
+  --brand-bg: #ffffff;
+  --card-1: #ffffff;
+  --card-1-text: #000000;
+  --card-2: #000000;
+  --card-2-text: #ffffff;
+  --card-3: #E50914;
+  --card-3-text: #ffffff;
+  --card-3-accent: #ffffff;
+  --post-2: #E50914;
+  --post-2-text: #ffffff;
+}
+
+/* Short colour fade while the mode switches (js/theme.js adds this class for under half a second) */
+.theme-fading, .theme-fading * { transition: background-color .35s, color .35s, border-color .35s, fill .35s, stroke .35s !important; }
+
+
+/* ---------- 2. Base ---------- */
+*, *::before, *::after { box-sizing: border-box; }
+
+/* Letter spacing is set on every element (not only on body) because "em" spacing is
+   worked out once and then inherited as a fixed length. Setting it on each element
+   keeps it correct at every font size. */
+*, *::before, *::after { letter-spacing: var(--track-en); }
+
+/* Anything in Hindi gets the Hindi font and the Hindi spacing. Add class="hi" to the element. */
+.hi, .hi * { font-family: var(--font-hi); letter-spacing: var(--track-hi); font-style: normal; }
+
+/* Large Hindi words. Sahitya only has weights 400 and 700, so ask for 700 (a heavier weight
+   would be faux-bolded by the browser and smear conjuncts), and use the looser display tracking. */
+.weekday-out i, .journal-word, .card .watermark, .blog-hero-word { font-weight: 700; letter-spacing: var(--track-hi-display); }
+
+html { scroll-behavior: smooth; overflow-x: clip; }
+
+body {
+  margin: 0;
+  background: var(--ink);
+  color: var(--cream);
+  font: 1.12rem/1.6 var(--font-en);
+  overflow-x: hidden;
+  padding-top: env(safe-area-inset-top, 0px);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+/* Solid strip behind the phone notch */
+body::before {
+  content: "";
+  position: fixed; inset: 0 0 auto;
+  height: env(safe-area-inset-top, 0px);
+  background: var(--ink);
+  z-index: 70;
+}
+
+main, footer { overflow-x: clip; }
+a { color: inherit; }
+p, h1, h2, h3 { margin: 0; }
+section { padding: clamp(52px, 8vw, 100px) var(--gutter); scroll-margin-top: 80px; }
+::selection { background: var(--red); color: var(--cream); }
+:focus-visible { outline: 3px solid var(--ink); outline-offset: 3px; box-shadow: 0 0 0 3px #ffffff; }
+
+.h2 {
+  font: 900 clamp(2rem, 5.6vw, 4.6rem)/1 var(--font-en);
+  max-width: 14em;
+}
+.lead { margin-top: 18px; max-width: 30em; opacity: .9; }
+
+/* Buttons */
+.btn {
+  display: inline-block;
+  font: 800 1rem var(--font-en);
+  text-decoration: none;
+  padding: 18px 30px;
+  margin: 22px 10px 0 0;
+  border-radius: 999px;
+  background: var(--red);
+  color: #ffffff;
+  border: 0;
+  cursor: pointer;
+  transition: transform .2s;
+}
+.btn:hover { transform: rotate(-3deg) scale(1.05); background: var(--ink); color: #ffffff; }
+.btn.outline { background: none; border: 3px solid var(--cream); color: var(--cream); }
+
+/* Top progress bar */
+#progress {
+  position: fixed; top: env(safe-area-inset-top, 0px); left: 0; right: 0;
+  height: 5px; background: var(--red); z-index: 65;
+  transform-origin: left; transform: scaleX(0);
+}
+
+/* Opening curtain */
+#curtain {
+  position: fixed; inset: 0; z-index: 100;
+  display: grid; place-items: center;
+  background: var(--ink); color: var(--pop);
+  transition: transform .9s cubic-bezier(.7, 0, .2, 1);
+}
+#curtain.go { transform: translateY(-100%); }
+#curtain b { font: 700 clamp(7rem, 38vw, 20rem)/1 var(--font-hi); animation: curtain-pulse 1.2s ease-in-out infinite alternate; }
+#curtain span { position: absolute; bottom: 12vh; font: 900 1.4rem var(--font-en); color: var(--cream); }
+@keyframes curtain-pulse { to { transform: scale(.9) rotate(-4deg); color: var(--red); } }
+
+
+/* ---------- 3. Top bar and menu ---------- */
+.bar {
+  position: fixed; z-index: 60;
+  top: calc(env(safe-area-inset-top, 0px) + 12px);
+  left: var(--gutter); right: var(--gutter);
+  display: flex; justify-content: space-between; align-items: center; gap: 10px;
+  pointer-events: none;                 /* only the pills below catch clicks */
+  transition: transform .35s ease;      /* the bar slides away while scrolling down */
+}
+.bar a, .bar button {
+  pointer-events: auto;
+  display: inline-flex; align-items: center; justify-content: center;
+  min-height: 48px; padding: 0 20px;
+  border-radius: 999px; border: 0;
+  font: 800 .85rem/1.1 var(--font-en);
+  text-decoration: none; cursor: pointer;
+}
+.bar .brand { background: var(--brand-bg); padding: 0 24px; box-shadow: 0 0 0 2px var(--ink); }
+.brand img { display: block; height: 32px; width: auto; position: relative; top: 3px; } /* the artwork has tall capitals and descenders; top: 3px puts the letters (not the empty box) in the middle of the pill */
+.bar .b { background: var(--red); color: #ffffff; }
+.bar .b:hover { background: var(--ink); color: var(--pop); }
+.bar .brand:hover { background: var(--red); }
+.bar button { background: var(--surface-2); color: var(--fg); }
+.bar button:hover { background: var(--btn-solid); color: var(--btn-solid-text); }
+.bar-end { display: flex; align-items: center; gap: 10px; pointer-events: none; }
+.bar .b .long-label { margin-left: .3em; }
+#menuButton { display: none; background: #ffffff; color: #000000; box-shadow: 0 0 0 2px #000000; }   /* white pill with a black ring, same as the logo pill: readable on white, black and red */
+#menuButton:hover, .bar.open #menuButton { background: var(--red); color: #ffffff; }
+
+/* Light / dark slider: the sun sits on the left in light mode, the moon slides to the right in dark mode */
+.bar .theme-toggle { position: relative; width: 64px; height: 34px; min-height: 34px; padding: 0; background: var(--toggle-track); transition: background-color .3s; }
+.bar .theme-toggle:hover { background: var(--toggle-track); }
+.theme-knob {
+  position: absolute; top: 3px; left: 3px; width: 28px; height: 28px;
+  display: grid; place-items: center; border-radius: 50%;
+  background: var(--toggle-knob);
+  transition: transform .3s cubic-bezier(.5, 0, .2, 1), background-color .3s;
+}
+.theme-toggle[aria-checked="true"] .theme-knob { transform: translateX(30px); }
+.theme-knob svg { grid-area: 1 / 1; width: 18px; height: 18px; fill: none; stroke: var(--toggle-icon); stroke-width: 2; stroke-linecap: round; transition: opacity .25s, transform .35s; }
+.icon-sun circle, .icon-moon path { fill: var(--toggle-icon); }
+.icon-moon { opacity: 0; transform: rotate(-50deg) scale(.5); }
+.theme-toggle[aria-checked="true"] .icon-sun { opacity: 0; transform: rotate(50deg) scale(.5); }
+.theme-toggle[aria-checked="true"] .icon-moon { opacity: 1; transform: none; }
+
+/* The pill of links */
+.nv { pointer-events: auto; background: var(--surface-2); border-radius: 999px; padding: 5px; }
+.nv ol { list-style: none; margin: 0; padding: 0; display: flex; gap: 2px; }
+.bar .nv a.nl {
+  background: none; color: var(--fg); box-shadow: none;
+  min-height: 42px; padding: 0 18px;
+  font: 800 .9rem var(--font-en);
+  transition: background .2s, color .2s;
+}
+.bar .nv a.nl i { display: none; }
+.bar .nv a.nl:hover, .bar .nv a.nl:focus-visible { background: var(--btn-solid); color: var(--btn-solid-text); }
+.bar .nv a.nl[aria-current="true"] { background: var(--red); color: #ffffff; }
+
+
+/* ---------- 4. Hero (no planets for now; the open space is on purpose) ---------- */
+section.hero {
+  position: relative; overflow: hidden;
+  min-height: max(100svh, 780px);
+  display: flex; align-items: flex-end;
+  padding: 0 var(--gutter) clamp(28px, 6vw, 64px);
+  background: var(--surface-1); color: var(--fg);
+}
+#live { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 0; }   /* flames, smoke and snake: js/live.js */
+@media (max-width: 1000px) { #live { display: none; } }
+#trail { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 1; }
+.hero-text { position: relative; z-index: 2; width: 100%; pointer-events: none; }
+
+/* Ganesha is the hero background, a static picture (the owner's Canva print, Ganesha on the right).
+   The headline, text and buttons sit inside the green wall on the left: about 9vw from the left edge,
+   no wider than 40vw, centred up and down. Phones and narrow screens use the portrait print with a dark
+   fade at the bottom so the text stays readable. The picture is dark in both themes, so the text is white. */
+section.hero {
+  background: #000 url("../img/hero-bg.webp") right center / cover no-repeat;
+  color: #ffffff;
+  align-items: center;
+  padding: 110px 0 56px 9vw;
+}
+section.hero .hero-text { max-width: 40vw; }
+section.hero::before { content: ""; position: absolute; inset: 0; z-index: 0; pointer-events: none;
+  background: linear-gradient(90deg, rgba(0, 0, 0, .62) 0%, rgba(0, 0, 0, .5) 46%, rgba(0, 0, 0, 0) 60%); }
+section.hero .hero-1, section.hero h1 em, section.hero .lede b { color: var(--red); }
+section.hero .hero-2, section.hero .lede { color: #ffffff; }
+section.hero .actions .btn { background: var(--red); color: #ffffff; }
+section.hero .actions .btn:hover { background: #ffffff; color: var(--ink); }
+section.hero .actions .btn.outline { background: none; border-color: #ffffff; color: #ffffff; }
+section.hero .actions .btn.outline:hover { background: #ffffff; border-color: #ffffff; color: var(--ink); }
+@media (max-width: 1000px) {
+  section.hero { align-items: flex-end; padding: 0 var(--gutter) clamp(28px, 6vw, 64px); background-image: url("../img/ganesha.webp"); background-position: center top; background-size: auto 62%; background-color: #000; }
+  section.hero .hero-text { max-width: none; }
+  section.hero::before { background: linear-gradient(180deg, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 0) 22%, rgba(0, 0, 0, .88) 56%, rgba(0, 0, 0, .94) 100%); }
+}
+
+h1 { font-size: inherit; font-weight: 900; line-height: 1; }
+/* Each headline line is nudged left by the empty space the font puts before its first letter, so V, a and y start on one straight edge. js/visuals.js measures it into --ink-shift. */
+.hero-1, .hero-2, h1 em { margin-left: var(--ink-shift, 0em); }
+.hero-1 { display: block; font: 900 clamp(4.4rem, 15vw, 11rem)/.85 var(--font-en); color: var(--accent); }
+.hero-1 { font-size: calc(clamp(4.4rem, 15vw, 11rem) * var(--vedic-scale, 1)); } /* js/visuals.js sets --vedic-scale so "Vedic" ends where "astrology" ends */
+.hero-2 { display: block; font: 900 clamp(2.4rem, 7.6vw, 6rem)/1 var(--font-en); }
+h1 em    { display: block; font: italic 700 clamp(1.6rem, 4.4vw, 3.2rem)/1.15 var(--font-en); color: var(--accent); margin-top: .15em; }
+
+.lede { margin-top: 22px; max-width: 34em; font-size: 1.12rem; font-weight: 500; line-height: 1.55; }
+.lede b { display: block; margin-bottom: 6px; font: italic 700 1.25em var(--font-en); color: var(--accent); }
+
+.actions { display: flex; flex-wrap: wrap; gap: 22px; margin-top: 22px; }
+.actions .btn { margin: 0; pointer-events: auto; background: var(--btn-solid); color: var(--btn-solid-text); }
+.actions .btn:hover { background: var(--red); color: #fff; }
+.actions .btn.outline { background: none; border-color: var(--fg); color: var(--fg); }
+.actions .btn.outline:hover { background: var(--btn-solid); border-color: var(--btn-solid); color: var(--btn-solid-text); }
+
+
+/* ---------- 5. Marquees (the two rotated scrolling strips) ---------- */
+.marquee {
+  position: relative; z-index: 3; overflow: hidden; white-space: nowrap;
+  margin: -18px -60px 0;
+  background: var(--strip-bg); color: var(--strip-text);
+  transform: rotate(-1.2deg);
+}
+.marquee > div { display: inline-block; padding: 14px 0; font: 700 2.4rem var(--font-hi); will-change: transform; }
+.marquee span { margin: 0 .6em; }
+.marquee i { font: normal 900 1rem var(--font-en); margin-left: .3em; }
+.marquee-dark { margin: 0 -60px; background: var(--band-ink); color: var(--pop); transform: rotate(1.2deg); }
+.marquee-dark > div { font: 900 2.4rem var(--font-en); }
+
+
+/* ---------- 6. Home page sections, in page order ---------- */
+
+/* What is stuck in your life */
+.ask { background: var(--band-deep); }
+.chips { display: flex; flex-wrap: wrap; gap: 12px; margin: 34px 0; }
+.chip {
+  font: 800 1rem var(--font-en);
+  padding: 14px 24px; border-radius: 999px; cursor: pointer;
+  border: 3px solid var(--cream); background: none; color: var(--cream);
+}
+.chip:hover { background: var(--cream); color: var(--deep); }
+.chip[aria-pressed="true"] { background: var(--pop); border-color: var(--pop); color: var(--ink); }
+.answer { max-width: 46rem; padding: clamp(24px, 4vw, 48px); border-radius: 32px; background: var(--band-ink); transform: rotate(-1deg); }
+.answer h3 { margin-bottom: 10px; font: 900 clamp(1.4rem, 3vw, 2.2rem)/1.05 var(--font-en); color: var(--pop); }
+.answer a { color: var(--pop); font-weight: 400; font-style: italic; }
+
+/* The Moon right now */
+.moon { background: var(--band-red); color: var(--band-red-text); }
+.moon-grid { display: grid; grid-template-columns: auto 1fr; gap: clamp(24px, 6vw, 80px); align-items: center; }
+.moon-disc { fill: var(--ink); stroke: var(--cream); }
+#moonLight { fill: var(--pop); }   /* the lit part of the Moon is white (v23: the owner did not want yellow here) */
+.moon svg { display: block; width: clamp(150px, 28vw, 300px); }
+.moon-grid > div { min-width: 0; justify-self: stretch; }   /* lets the three fact boxes shrink to a phone screen */
+.moon-big { margin-top: 10px; font: 900 clamp(2rem, 6vw, 4.6rem)/1 var(--font-en); }
+.moon-facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(190px, 100%), 1fr)); gap: 14px; max-width: 48rem; margin-top: 28px; }
+.moon-facts > div { padding: 16px 18px 18px; border: 3px solid var(--cream); border-radius: 22px; }
+.moon-facts dt { font-weight: 700; opacity: .85; }
+.moon-facts dd { margin: 0; }
+.moon-facts .fact-hi { display: block; margin-top: 4px; font-size: clamp(1.7rem, 3.4vw, 2.3rem); line-height: 1.2; font-weight: 700; letter-spacing: var(--track-hi-display); }
+.moon-facts b { display: block; font: 900 1.2rem var(--font-en); }
+.moon-facts small { display: block; margin-top: 6px; font-size: .92rem; line-height: 1.4; opacity: .92; }
+#moonNote { display: block; max-width: 36em; margin-top: 20px; font-size: .95rem; opacity: .9; }
+
+/* The nine grahas */
+.grahas { background: var(--surface-1); color: var(--fg); text-align: center; }
+.grahas .h2 { margin: 0 auto; }
+.grahas .lead { margin: 16px auto 0; }
+#sky {
+  -webkit-tap-highlight-color: transparent; -webkit-user-select: none; user-select: none; outline: none;   /* no blue flash or box when a planet is tapped on a phone (v32) */
+  display: block; width: 100%;
+  height: clamp(340px, 56vw, 620px);
+  margin-top: 20px;
+  cursor: pointer; touch-action: pan-y;
+}
+.planet-info { max-width: 34em; margin: 12px auto 0; padding: 14px 22px; border-radius: 22px; background: var(--band-ink); color: var(--band-ink-text); font-size: 1.15rem; line-height: 1.3; text-align: left; }
+.planet-info b { display: block; font: 900 1rem var(--font-en); color: var(--pop); }
+
+/* Which graha rules your birthday */
+.weekday { background: var(--band-ink); }
+.weekday input {
+  max-width: 100%; margin-top: 30px; padding: 16px 30px;
+  font: 900 clamp(1.3rem, 5vw, 3rem) var(--font-en);
+  border: 0; border-radius: 999px; background: var(--pop); color: var(--ink);
+}
+.weekday-out { min-height: 1.9em; margin-top: 36px; font: 900 clamp(2.2rem, 9vw, 8rem)/.92 var(--font-en); color: var(--pop); }
+.weekday-out i { display: block; color: var(--cream); line-height: 1.15; }
+.weekday-out small { display: block; max-width: 34em; margin-top: 16px; font: 500 1.1rem/1.5 var(--font-en); color: var(--cream); }
+
+/* Twelve signs, one wheel */
+.wheel { background: var(--surface-1); color: var(--fg); text-align: center; overflow: hidden; }
+.wheel .h2 { margin: 0 auto; }
+.wheel .lead { margin: 16px auto 0; }
+.wheel-box { position: relative; width: min(92vw, 640px); margin: 30px auto 0; }
+#wheel { display: block; width: 100%; }
+.wheel-read { position: absolute; left: 50%; top: 50%; width: 46%; display: flex; flex-direction: column; gap: 2px; transform: translate(-50%, -50%); pointer-events: none; }
+.wheel-read i { font: 700 clamp(2.4rem, 9vw, 5rem)/1.1 var(--font-hi); color: var(--accent); }
+.wheel-read b { font: 900 clamp(1.1rem, 3.4vw, 1.8rem) var(--font-en); }
+.wheel-read span { font-size: clamp(.78rem, 2.2vw, 1.05rem); line-height: 1.35; }
+.wheel-ring { fill: none; stroke: var(--fg); stroke-width: 3; }
+.sign { cursor: pointer; }
+.sign circle { fill: var(--surface-2); stroke: var(--fg); stroke-width: 3; transition: fill .2s; }
+.sign text { font-size: 23px; font-weight: 700; fill: var(--fg); pointer-events: none; }
+.sign:focus, .sign:focus-visible { outline: none; box-shadow: none; }
+.sign:focus-visible circle { stroke: var(--red); stroke-width: 5; }
+.sign[aria-pressed="true"] circle { fill: var(--red); stroke: var(--red); }
+.sign[aria-pressed="true"] text { fill: var(--cream); }
+
+/* Services */
+.cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 22px; margin-top: 40px; }
+.card {
+  position: relative; overflow: hidden;
+  display: flex; flex-direction: column; justify-content: space-between; gap: 30px;
+  min-height: 420px; padding: clamp(28px, 4vw, 56px);
+  border-radius: 36px; color: var(--ink);
+  transition: transform .3s;
+}
+.card > * { position: relative; z-index: 1; }
+.card:hover { transform: rotate(1.5deg) scale(1.02); }
+.card:nth-child(2):hover { transform: rotate(-1.5deg) scale(1.02); }
+.card h3 { margin-bottom: 16px; font: 900 clamp(1.7rem, 3.6vw, 3rem)/1 var(--font-en); }
+.card .price { margin: 2px 0 4px; font: 900 clamp(2.6rem, 5vw, 3.8rem)/1 var(--font-en); }
+.card .length { margin-bottom: 16px; font: 800 1rem var(--font-en); }
+.card p:not(.price):not(.length) { font-size: 1.05rem; }
+.card > a { align-self: flex-start; padding: 14px 24px; border-radius: 999px; background: var(--ink); color: var(--cream); font: 800 1rem var(--font-en); text-decoration: none; }
+.card .watermark { position: absolute; z-index: 0; right: -.04em; bottom: -.18em; font: 700 clamp(5rem, 14vw, 11rem)/1 var(--font-hi); opacity: .14; pointer-events: none; }
+.card-dwapara { background: var(--card-1); color: var(--card-1-text); border: 3px solid #ffffff; }
+.card-dwapara > a { background: var(--card-1-text); color: var(--card-1); }
+.card-treta   { background: var(--card-2); color: var(--card-2-text); border: 3px solid #ffffff; }
+.card-treta > a { background: var(--card-2-text); color: var(--card-2); }
+.card-satya   { background: var(--card-3); color: var(--card-3-text); }
+.card-satya .price, .card-satya .length { color: var(--card-3-accent); }
+.card-satya > a { background: var(--card-3-accent); color: var(--ink); }
+
+/* How it works */
+.steps { background: var(--surface-2); color: var(--fg); }
+.rail { display: grid; grid-template-columns: repeat(3, 1fr); gap: 28px; margin-top: 40px; padding: 0; list-style: none; }
+.rail li { padding-top: 12px; border-top: 6px solid var(--fg); }
+.rail b { display: block; font: 700 clamp(5rem, 12vw, 9rem)/1 var(--font-hi); color: var(--accent); }
+.rail h3 { margin-bottom: 6px; font: 900 1.3rem var(--font-en); }
+
+/* Journal */
+.journal { background: var(--band-deep); color: var(--cream); }
+.journal-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-top: 36px; }
+.journal-row article { position: relative; display: flex; flex-direction: column; overflow: hidden; min-height: 230px; padding: 26px; border: 3px solid var(--pop); border-radius: 26px; }
+.journal-row h3 { margin-bottom: 8px; font: 800 1.4rem/1.25 var(--font-en); color: var(--pop); }
+.journal-word { display: block; margin-top: auto; padding-top: 14px; font: 700 clamp(3.2rem, 7vw, 4.8rem)/1.1 var(--font-hi); color: var(--pop); opacity: .4; }
+
+/* YouTube */
+.youtube { background: var(--surface-2); color: var(--fg); text-align: center; }
+.youtube .h2 { margin: 0 auto; }
+.youtube-badge { position: relative; display: block; width: min(60vw, 320px); margin: 30px auto 0; text-decoration: none; }
+.youtube-badge svg { display: block; width: 100%; animation: spin 16s linear infinite; }
+.youtube-badge text { font: 900 26px var(--font-en); fill: var(--ink); }
+.youtube-badge::after { content: ""; position: absolute; left: 50%; top: 50%; width: 34%; aspect-ratio: 1; transform: translate(-50%, -50%); border-radius: 50%; background: var(--red); box-shadow: 0 0 0 6px var(--ink); transition: transform .35s ease; }
+.youtube-badge:hover::after { transform: translate(-50%, -50%) scale(1.05); }
+.youtube-badge::before { content: ""; position: absolute; z-index: 1; left: 50%; top: 50%; transform: translate(-35%, -50%); border-left: clamp(20px, 5vw, 32px) solid var(--cream); border-top: clamp(13px, 3.2vw, 20px) solid transparent; border-bottom: clamp(13px, 3.2vw, 20px) solid transparent; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* About */
+.about { display: grid; grid-template-columns: 1.2fr .8fr; gap: clamp(30px, 6vw, 90px); align-items: center; }
+.about p + p { margin-top: 16px; }
+.blob { padding: clamp(34px, 6vw, 70px); border-radius: 50% 46% 52% 48% / 48% 52% 46% 50%; background: var(--red); color: #ffffff; transform: rotate(4deg); }
+.blob h3 { margin-bottom: 10px; font: 900 1.6rem var(--font-en); }
+
+
+/* ---------- 7. Booking ---------- */
+.booking { background: var(--surface-1); color: var(--fg); text-align: center; overflow: hidden; }
+.booking .h2 { margin: 0 auto; }
+.booking .lead { margin-left: auto; margin-right: auto; }
+
+.badge { position: relative; display: block; width: min(58vw, 300px); margin: 30px auto 0; text-decoration: none; }
+.badge svg { display: block; width: 100%; animation: spin 16s linear infinite; }
+.badge:hover svg { animation-duration: 3s; }
+.badge-disc { fill: var(--disc); }
+.badge text { font: 900 26px var(--font-en); fill: var(--fg); }
+.badge::after { content: "Book"; position: absolute; inset: 0; display: grid; place-items: center; font: 900 clamp(2rem, 8vw, 3.6rem) var(--font-en); color: var(--fg); }
+
+.tiers { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; max-width: 940px; margin: 30px auto 0; }
+.tier { position: relative; display: block; padding: 18px; border: 3px solid var(--edge); border-radius: 22px; background: var(--surface-2); color: var(--fg); text-align: left; cursor: pointer; }
+.tier input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+.tier b { display: block; font: 900 1.5rem var(--font-en); }
+.tier span { display: block; }
+.tier:has(input:checked) { background: var(--btn-solid); color: var(--btn-solid-text); }
+.tier:has(input:focus-visible) { outline: 4px solid var(--red); outline-offset: 3px; }
+
+.booking-actions { margin-top: 22px; }
+.booking-actions .btn { margin: 6px; }
+/* Sign in / Create account: soft background with a border, matching the session boxes above */
+.booking-actions .btn {
+  background: var(--surface-2); color: var(--fg);
+  border: 3px solid var(--edge);
+}
+.booking-actions .btn:hover { background: var(--btn-solid); color: var(--btn-solid-text); }
+.booking-message { margin-top: 14px; font-weight: 700; }
+/* The confirmation shown after a request is sent (the form is hidden then) */
+.booking-message.sent {
+  max-width: 560px; margin: 26px auto 0; padding: 22px 26px;
+  border: 3px solid var(--edge); border-radius: 24px;
+  background: var(--surface-2); box-shadow: 10px 10px 0 var(--edge-shadow);
+}
+
+/* The request form */
+.slot {
+  max-width: 560px; margin: 26px auto 0; padding: clamp(20px, 4vw, 34px);
+  border: 3px solid var(--edge); border-radius: 24px;
+  background: var(--surface-2); color: var(--fg); text-align: left;
+  box-shadow: 10px 10px 0 var(--edge-shadow);
+}
+.slot[hidden] { display: none; }
+.slot h3 { margin: 0 0 6px; font: 900 1.6rem var(--font-en); }
+.fine { margin: 8px 0 14px; font-size: .9rem; opacity: .75; }
+
+.fld { display: block; margin: 14px 0; font-weight: 700; }
+.fld input, .fld textarea {
+  display: block; width: 100%; margin-top: 6px; padding: 12px 14px;
+  font: inherit; font-weight: 500;
+  border: 2.5px solid var(--edge); border-radius: 14px; background: var(--field); color: var(--fg);
+}
+.fld textarea { resize: vertical; }
+.fld.check input { display: inline; width: auto; margin: 0 6px 0 0; }
+
+/* Phone number: country dropdown + digits */
+.phone { display: flex; gap: 8px; margin-top: 6px; }
+.phone select {
+  max-width: 48%; padding: 12px 8px;
+  font: inherit; font-weight: 600;
+  border: 2.5px solid var(--edge); border-radius: 14px; background: var(--field); color: var(--fg);
+  color-scheme: var(--scheme);               /* the open list follows light / dark mode */
+}
+.phone select option { background: var(--field); color: var(--fg); }
+.phone select option:hover, .phone select option:focus, .phone select option:checked { background: var(--red) !important; color: #ffffff !important; box-shadow: 0 0 0 100px var(--red) inset; }
+.fld .phone input { flex: 1; width: auto; min-width: 0; margin: 0; }
+
+
+/* ---------- 8. Contact and footer ---------- */
+.contact { background: var(--band-deep); }
+.contact .btn { margin-right: 10px; }
+.mail { display: block; margin-top: 24px; font: 900 clamp(1.3rem, 6vw, 4.4rem)/1.05 var(--font-en); color: var(--pop); text-decoration: none; overflow-wrap: anywhere; }
+.mail:hover { color: var(--cream); }
+footer { padding: 50px var(--gutter) 28px; background: var(--band-red); color: var(--band-red-text); overflow: hidden; }
+.footer-mark { font: 900 clamp(3rem, 20vw, 17rem)/.85 var(--font-en); white-space: nowrap; }
+.footer-row { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 10px; margin-top: 20px; font-size: 1.05rem; }
+
+
+/* ---------- 9. Sign-in box and blog ---------- */
+dialog { width: min(92vw, 420px); padding: 28px; border: 3px solid var(--edge); border-radius: 26px; background: var(--surface-2); color: var(--fg); }
+dialog::backdrop { background: rgba(0, 0, 0, .75); }
+dialog h2 { margin: 0 0 6px; font: 900 2rem var(--font-en); }
+#authError { margin: 10px 0 4px; padding: 12px 14px; border: 2.5px solid var(--red); border-radius: 14px; background: var(--field); color: var(--fg); font-weight: 700; line-height: 1.35; }
+#authError[hidden], #authDone[hidden], #authForm[hidden], #authPasswordHint[hidden] { display: none; }
+#authDone { text-align: center; }
+#authDone svg { color: var(--red); }
+#authDone h2 { margin: 6px 0 10px; }
+#authDone ol { display: inline-block; margin: 8px 0; padding-left: 1.3em; text-align: left; font-weight: 700; }
+#authDone .btn { margin-top: 10px; }
+#authPasswordHint { margin: 4px 0 8px; }
+.btn-google { display: flex; align-items: center; justify-content: center; gap: 12px; width: 100%; min-height: 48px; padding: 10px 16px; border: 2.5px solid var(--edge); border-radius: 999px; background: #ffffff; color: #1f1f1f; font: 700 1rem var(--font-en); cursor: pointer; }
+.btn-google:hover { background: #f1f1f1; }
+.btn-google:disabled { opacity: .6; cursor: wait; }
+.auth-or { display: flex; align-items: center; gap: 12px; margin: 14px 0 0; font-size: .9rem; opacity: .8; }
+.auth-or::before, .auth-or::after { content: ""; flex: 1; border-top: 2px solid var(--edge); }
+.auth-links { display: flex; flex-wrap: wrap; gap: 6px 22px; margin-top: 6px; }
+.link-button { padding: 8px 0; border: 0; background: none; font: inherit; font-weight: 700; color: inherit; text-decoration: underline; cursor: pointer; }
+
+/* Password box with a Show / Hide button. One even focus ring around the whole box. */
+.pw { display: flex; align-items: center; margin-top: 6px; border: 2.5px solid var(--edge); border-radius: 14px; background: var(--field); }
+.fld .pw input { flex: 1; width: auto; min-width: 0; margin: 0; border: 0; background: transparent; }
+.fld .pw input:focus, .fld .pw input:focus-visible { outline: none; box-shadow: none; }   /* the whole box gets the ring below; the page-wide ring's white shadow was covering the box border */
+.pw:has(input:focus) { outline: 4px solid var(--red); outline-offset: 3px; }
+.pw button { margin-right: 8px; padding: 8px 14px; border: 0; border-radius: 999px; background: var(--btn-solid); color: var(--btn-solid-text); font: 800 .8rem var(--font-en); cursor: pointer; }
+.pw button:focus-visible { outline: 3px solid var(--fg); outline-offset: 2px; }
+
+/* Preview-mode notice */
+.preview-banner { position: fixed; z-index: 75; right: 12px; bottom: calc(env(safe-area-inset-bottom, 0px) + 12px); max-width: min(92vw, 300px); pointer-events: none; padding: 10px 14px; border-radius: 16px; background: var(--ink); color: var(--pop); font: 700 .85rem/1.35 var(--font-en); }
+
+/* Hidden views: #blog, #admin, #dashboard replace the home page while open */
+.view { display: none; min-height: 100svh; padding: 70px 0 clamp(52px, 8vw, 100px); background: var(--surface-2); color: var(--fg); }   /* full width: the .page inside adds the side padding */
+body.view-blog #blogView, body.view-admin #adminView, body.view-dashboard #dashboardView, body.view-privacy #privacyView, body.view-terms #termsView { display: block; }
+body.view-blog main > *:not(#blogView),
+body.view-admin main > *:not(#adminView),
+body.view-dashboard main > *:not(#dashboardView),
+body.view-privacy main > *:not(#privacyView),
+body.view-terms main > *:not(#termsView) { display: none; }
+
+.page { max-width: 860px; margin: 0 auto; padding: clamp(36px, 7vw, 80px) var(--gutter); }
+.page h2 { margin: 40px 0 8px; font: 900 1.8rem var(--font-en); }
+.post-title { margin: 0 0 8px; font: 900 clamp(2rem, 6vw, 3.6rem)/1.05 var(--font-en); }
+.post-text { margin: 0 0 1.1em; font-size: 1.15rem; line-height: 1.75; }
+.post-date { margin-bottom: 24px; opacity: .7; }
+.post-text { max-width: 40em; }
+.page.wide { max-width: 1100px; }
+
+/* Blog: a bright header band, then post cards (or a friendly note while there are no posts) */
+#blogView { padding-top: 0; }
+#blogView.post-open { padding-top: 70px; }
+.blog-hero { position: relative; overflow: hidden; padding: 150px var(--gutter) 40px; background: var(--surface-1); color: var(--fg); }
+.blog-hero[hidden] { display: none; }
+.blog-hero-text { position: relative; z-index: 1; }
+.eyebrow { margin: 0 0 14px; font: 800 .85rem var(--font-en); text-transform: uppercase; letter-spacing: .14em; color: var(--accent); }
+.blog-hero-word { position: absolute; right: var(--gutter); top: 90px; font: 700 clamp(9rem, 26vw, 22rem)/1 var(--font-hi); color: var(--accent); opacity: .2; pointer-events: none; }
+.blog-ribbon { position: relative; z-index: 2; overflow: hidden; white-space: nowrap; margin: 70px -60px -26px; background: var(--strip-bg); color: var(--strip-text); transform: rotate(-1.2deg); }
+.blog-ribbon div { display: inline-block; padding: 12px 0; font: 700 2rem var(--font-hi); animation: ribbon-slide 40s linear infinite; }
+@keyframes ribbon-slide { to { transform: translateX(-50%); } }
+
+.blog-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 22px; }
+.post-card {
+  position: relative; overflow: hidden;
+  display: flex; flex-direction: column; align-items: flex-start; gap: 12px;
+  min-height: 270px; padding: clamp(22px, 3vw, 34px);
+  border-radius: 30px; color: var(--ink); text-decoration: none;
+  transition: transform .3s;
+}
+.post-card:hover { transform: rotate(-1deg) scale(1.02); }
+.post-card:nth-child(3n + 1) { background: var(--surface-2); color: var(--fg); border: 3px solid var(--edge); }
+.post-card:nth-child(3n + 2) { background: var(--post-2); color: var(--post-2-text); }
+.post-card:nth-child(3n) { background: var(--band-ink); color: var(--cream); }
+.post-card > * { position: relative; z-index: 1; }
+.post-card h3 { font: 900 clamp(1.5rem, 3.4vw, 2.2rem)/1.1 var(--font-en); }
+.post-card p { opacity: .9; }
+.post-card .read { margin-top: auto; font-weight: 800; }
+.post-card .post-card-number { position: absolute; z-index: 0; right: .1em; bottom: -.15em; font: 700 8rem/1 var(--font-hi); opacity: .16; pointer-events: none; }
+.post-card .pill { background: var(--ink); color: #ffffff; }
+.post-card:nth-child(3n) .pill { background: #ffffff; color: var(--ink); }
+
+.blog-empty { max-width: 640px; margin: 0 auto; padding: clamp(28px, 5vw, 56px); text-align: center; border: 3px solid var(--edge); border-radius: 32px; background: var(--field); box-shadow: 10px 10px 0 var(--edge-shadow); }
+.blog-empty .om { display: block; font: 700 5.5rem/1.1 var(--font-hi); color: var(--accent); }
+.blog-empty h3 { margin: 6px 0 10px; font: 900 clamp(1.6rem, 4vw, 2.4rem)/1.1 var(--font-en); }
+.blog-empty .btn { margin: 18px 6px 0; }
+
+
+/* ---------- 10. Admin pages (Write and Dashboard) ---------- */
+.page-intro { margin: 10px 0 0; opacity: .75; }
+
+/* A box with a border, used for the post form and for each booking request */
+.panel {
+  margin-top: 22px; padding: clamp(18px, 3vw, 28px);
+  border: 3px solid var(--edge); border-radius: 24px;
+  background: var(--field); box-shadow: 6px 6px 0 var(--edge-shadow);
+}
+.panel h3 { margin: 0; font: 900 1.4rem var(--font-en); }
+.section-title { display: flex; align-items: baseline; gap: 12px; margin: 40px 0 0; }
+.section-title h2 { margin: 0; }
+.section-title span { font-weight: 700; opacity: .6; }
+
+/* Small buttons and the little label pills */
+.btn.small { margin: 0; padding: 10px 18px; font-size: .9rem; }
+.btn.danger { background: none; border: 3px solid var(--edge); color: var(--fg); }
+.btn.danger:hover { background: var(--red); border-color: var(--red); color: #fff; }
+.pill { display: inline-block; padding: 4px 12px; border-radius: 999px; background: var(--btn-solid); color: var(--btn-solid-text); font: 800 .8rem var(--font-en); }
+.pill.draft { background: none; border: 2px solid var(--edge); color: var(--fg); }
+.form-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 16px; margin-top: 8px; }
+.form-actions .btn { margin: 0; }
+
+/* Your posts */
+.post-row { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 12px; padding: 14px 0; border-top: 2px solid var(--faint-line); }
+.post-row-title { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; font-weight: 800; }
+.post-row-buttons { display: flex; gap: 10px; }
+
+/* Booking requests */
+.request-head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 10px; }
+.request-when { margin: 6px 0 14px; font-weight: 700; opacity: .75; }
+.request-details { display: grid; grid-template-columns: 6.5em 1fr; gap: 8px 14px; margin: 0 0 18px; padding-top: 14px; border-top: 2px solid var(--faint-line); }
+.request-details dt { font-weight: 800; opacity: .6; }
+.request-details dd { margin: 0; overflow-wrap: anywhere; }
+.request-actions { display: flex; flex-wrap: wrap; gap: 10px; }
+.request-actions .btn { margin: 0; }
+
+
+/* ---------- 11. Small screens and reduced motion ---------- */
+
+/* Wide menu becomes a dropdown on narrower screens */
+@media (max-width: 1280px) {
+  #menuButton { display: inline-flex; }
+  .nv {
+    position: absolute; top: calc(100% + 10px); right: 0; width: min(340px, 100%);
+    padding: 10px; border-radius: 28px; background: var(--band-ink);
+    box-shadow: 0 20px 50px rgba(0, 0, 0, .45);
+    opacity: 0; visibility: hidden; transform: translateY(-8px) scale(.98); transform-origin: top right;
+    transition: opacity .2s, transform .2s, visibility 0s .2s;
+  }
+  .bar.open .nv { opacity: 1; visibility: visible; transform: none; transition: opacity .2s, transform .2s, visibility 0s; }
+  .nv ol { flex-direction: column; gap: 0; }
+  .bar .nv a.nl { justify-content: flex-start; gap: 14px; min-height: 58px; padding: 0 18px; border-radius: 18px; font: 900 1.5rem var(--font-en); color: var(--cream); }
+  .bar .nv a.nl i { display: inline; min-width: 1.1em; font-size: 1rem; color: var(--red); }
+  .bar .nv a.nl:hover, .bar .nv a.nl:focus-visible { background: var(--red); color: #ffffff; }
+  .bar .nv a.nl:hover i, .bar .nv a.nl:focus-visible i, .bar .nv a.nl[aria-current="true"] i { color: #ffffff; }
+}
+
+@media (max-width: 1000px) { .cards { grid-template-columns: 1fr; } }
+
+@media (max-width: 820px) {
+  .about, .rail, .journal-row, .blog-grid { grid-template-columns: 1fr; }
+  .card { min-height: 0; }
+}
+
+@media (max-width: 700px) {
+  section.hero { min-height: max(100svh, 640px); }
+  .moon-grid { grid-template-columns: 1fr; justify-items: start; }
+  .tiers { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 520px) {
+  .bar .b .long-label { display: none; }
+  .bar-end { gap: 6px; }
+  .bar a, .bar button { padding: 0 14px; }
+  .bar .theme-toggle { width: 56px; padding: 0; }
+  .theme-toggle[aria-checked="true"] .theme-knob { transform: translateX(22px); }
+}
+
+@media (max-width: 480px) {
+  .actions { flex-direction: column; align-items: stretch; gap: 16px; }
+  .actions .btn { text-align: center; }
+  .request-details { grid-template-columns: 1fr; gap: 2px; }
+  .request-details dd { margin-bottom: 10px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  * { animation: none !important; transition: none !important; }
+}
+
+#authCaptcha{margin:12px 0}
+
+/* ---------- Date and time fields (v32, js/datetime.js) ---------- */
+/* A text box you can type in (dd/mm/yyyy, hh:mm) plus a visible calendar or clock button for the phone's own picker. */
+#sky:focus, #sky:focus-visible, #wheel, #wheel:focus { outline: none; box-shadow: none; -webkit-tap-highlight-color: transparent; }
+.dt { position: relative; display: block; max-width: 100%; }
+.weekday .dt { display: inline-block; margin-top: 30px; }
+.fld .dt { margin-top: 6px; }
+.dt .dt-text, .fld .dt .dt-text, .weekday .dt .dt-text { margin-top: 0; }
+.dt .dt-text { padding-right: 62px; }
+.dt .dt-pick {
+  position: absolute; top: 50%; right: 8px; transform: translateY(-50%);
+  display: flex; align-items: center; justify-content: center;
+  width: 44px; height: 44px; padding: 0; border: 0; border-radius: 999px;
+  background: var(--red); color: #ffffff; cursor: pointer;
+}
+.dt .dt-pick:hover { background: var(--ink); }
+.dt .dt-pick:focus-visible { outline: 3px solid var(--ink); outline-offset: 2px; }
+/* The real date or time input stays under the button, invisible, so the phone's picker opens right there */
+.dt .dt-native, .fld .dt .dt-native, .weekday .dt .dt-native {
+  position: absolute; right: 8px; bottom: 0; width: 44px; height: 44px; margin: 0; padding: 0;
+  opacity: 0; pointer-events: none; border: 0; background: none;
+}
+.weekday .dt .dt-pick { right: 14px; }
+.weekday .dt .dt-text { padding-right: 78px; }
+#authGoogleBlock { margin-top: 12px; }
+
+/* Admin two-step sign-in */
+.twostep { max-width: 460px; }
+.twostep input { font: 700 1.2rem var(--font-en); letter-spacing: .2em; padding: 10px 14px; width: 11ch; }
+.twostep code { display: block; overflow-wrap: anywhere; margin: 8px 0 14px; }
+.twostep-qr { display: block; margin: 12px 0; background: #fff; padding: 8px; border-radius: 12px; }
+
+/* Set by js/visuals.js while an animated element is off screen */
+.anim-off, .anim-off * { animation-play-state: paused !important; }
+
+
+/* ---------- Privacy notice and Terms pages, footer links, booking consent box (v35) ---------- */
+.legal .page { max-width: 760px; }
+.legal h2 { font-size: clamp(1.25rem, 2.6vw, 1.6rem); font-weight: 800; margin: 2.2em 0 .5em; }
+.legal h3 { font-size: 1.05rem; font-weight: 700; margin: 1.4em 0 .4em; }
+.legal p, .legal li { font-size: 1.05rem; line-height: 1.7; }
+.legal ul { padding-left: 1.3em; margin: .5em 0 1em; }
+.legal li { margin: .35em 0; }
+.legal a { color: var(--accent); text-decoration: underline; text-underline-offset: 3px; }
+.footer-legal { margin: 0; }
+.footer-legal a { color: inherit; text-decoration: underline; text-underline-offset: 3px; }
+.consent { display: flex; gap: 12px; align-items: flex-start; margin: 18px 0 6px; font-size: .95rem; line-height: 1.55; cursor: pointer; }
+.consent input { flex: 0 0 auto; appearance: none; -webkit-appearance: none; width: 24px; height: 24px; margin: 1px 0 0; padding: 0; border: 2px solid var(--fg); border-radius: 7px; background: var(--field); cursor: pointer; display: grid; place-content: center; }
+.consent input::after { content: ""; width: 12px; height: 7px; border-left: 3px solid #ffffff; border-bottom: 3px solid #ffffff; transform: rotate(-45deg) translate(1px, -1px); opacity: 0; }
+.consent input:checked { background: var(--red); border-color: var(--red); }
+.consent input:checked::after { opacity: 1; }
+.consent a { color: var(--accent); text-decoration: underline; text-underline-offset: 3px; }
+
+/* Short summary box at the top of the Privacy notice and Terms (v3) */
+.legal-sum { margin: 1.2em 0 .4em; padding: 4px 22px 10px; border: 2.5px solid var(--edge); border-radius: 18px; background: var(--field); }
+.legal-sum h2 { margin-top: .9em; }
+.legal ol { padding-left: 1.4em; margin: .5em 0 1em; }
+.legal ol li { margin: .35em 0; font-size: 1.05rem; line-height: 1.7; }
