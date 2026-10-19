@@ -201,7 +201,9 @@
     },
     // Resolves with { confirmEmail: true } when Supabase has sent a confirmation email (the person is not signed in yet).
     signUp(email, password, captchaToken) {
-      return supabase.auth.signUp({ email, password, options: { captchaToken } }).then((result) => {
+      // emailRedirectTo sends the confirmation link back to THIS page, including the /Sufiology/ folder on GitHub Pages.
+      const returnAddress = location.origin + location.pathname;
+      return supabase.auth.signUp({ email, password, options: { captchaToken, emailRedirectTo: returnAddress } }).then((result) => {
         if (result.error) throw result.error;
         const user = result.data.user;
         // Supabase answers "success" for an email that already has an account, but with no identities
