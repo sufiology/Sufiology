@@ -65,15 +65,17 @@
   }
 
 
-  /* ---------- hCaptcha: the "are you human" box (live mode only) ---------- */
-  const captchaKey = (window.SUF && window.SUF.hcaptchaSitekey) || "";
+  /* ---------- Cloudflare Turnstile: the "are you human" check (live mode only) ---------- */
+  // Most visitors pass without seeing anything; a box appears only when the check is unsure (appearance: interaction-only).
+  // The token it makes is sent to Supabase with the sign-in or sign-up. Supabase checks it with the secret key.
+  const captchaKey = (window.SUF && window.SUF.turnstileSitekey) || "";
   const captchaOn = !!(captchaKey && window.SUF && window.SUF.supabaseUrl);
   let captchaId = null;
   function loadCaptchaScript() {
     return new Promise((resolve, reject) => {
-      if (window.hcaptcha) return resolve();
+      if (window.turnstile) return resolve();
       const script = document.createElement("script");
-      script.src = "https://js.hcaptcha.com/1/api.js?render=explicit";
+      script.src = "https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit";
       script.async = true;
       script.onload = resolve;
       script.onerror = () => reject(new Error("Could not load the human check. Please try again."));
@@ -83,8 +85,16 @@
   function showCaptcha() {
     if (!captchaOn) return;
     loadCaptchaScript().then(() => {
-      if (captchaId === null) captchaId = window.hcaptcha.render("authCaptcha", { sitekey: captchaKey });
-      else window.hcaptcha.reset(captchaId);
+      if (captchaId === null) {
+        captchaId = window.turnstile.render("#authCaptcha", {
+          sitekey: captchaKey,
+          theme: "light",                       // the sign-in window is white in both colour modes
+          appearance: "interaction-only",
+          "error-callback": () => { byId("authError").textContent = "The human check could not run. Refresh the page and try again."; }
+        });
+      } else {
+        window.turnstile.reset(captchaId);
+      }
     }).catch((error) => { byId("authError").textContent = error.message; });
   }
 
@@ -101,7 +111,7 @@
     if (has("leaked", "pwned", "weak_password", "weak password", "easy to guess")) return "That password is too easy to guess. Try a longer one, with letters and numbers.";
     if (has("at least", "too short", "password should")) return "Your password needs at least 8 characters.";
     if (has("rate limit", "rate_limit", "too many", "429", "security purposes")) return "Too many tries in a short time. Please wait a few minutes and try again.";
-    if (has("captcha")) return "The human check did not go through. Tick the box again and try once more.";
+    if (has("captcha")) return "The human check did not go through. Wait a moment and try again. If it keeps failing, refresh the page.";
     if (has("failed to fetch", "networkerror", "network request", "load failed")) return "Cannot reach the server. Check your internet connection and try again.";
     if (has("signup is disabled", "signups not allowed", "provider is not enabled", "unsupported provider")) return "This sign-in option is not available yet. Please use your email and password.";
     if (has("invalid email", "email_address_invalid", "unable to validate email")) return "That email address does not look right. It should look like name@example.com.";
@@ -222,8 +232,8 @@
       const action = signInMode === "in" ? backend.signIn : backend.signUp;
       let token = "";
       if (captchaOn) {
-        token = captchaId === null ? "" : window.hcaptcha.getResponse(captchaId);
-        if (!token) { showAuthProblem("Please tick the box to show you are human."); return; }
+        token = captchaId === null ? "" : window.turnstile.getResponse(captchaId);
+        if (!token) { showAuthProblem("One moment: the human check is still running. Wait a second, then press the button again."); return; }
       }
       const submit = byId("authSubmit");
       submit.disabled = true;
@@ -235,7 +245,7 @@
           return refreshAll();
         })
         .catch((error) => { showAuthProblem(friendlyAuthError(error, signInMode)); })
-        .then(() => { submit.disabled = false; if (captchaOn && captchaId !== null) window.hcaptcha.reset(captchaId); });
+        .then(() => { submit.disabled = false; if (captchaOn && captchaId !== null) window.turnstile.reset(captchaId); });
     };
     return box;
   }

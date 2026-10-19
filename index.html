@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <!-- Security policy. GitHub Pages cannot send the _headers file, so the same policy is set here. (frame-ancestors cannot be set in a page; js/theme.js blocks framing instead.) -->
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://hcaptcha.com https://*.hcaptcha.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://hcaptcha.com https://*.hcaptcha.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self' https://pkeajcmjwocckcxdiefd.supabase.co https://hcaptcha.com https://*.hcaptcha.com; frame-src https://hcaptcha.com https://*.hcaptcha.com; object-src 'none'; base-uri 'self'; form-action 'self'">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://challenges.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self' https://pkeajcmjwocckcxdiefd.supabase.co https://challenges.cloudflare.com; frame-src https://challenges.cloudflare.com; object-src 'none'; base-uri 'self'; form-action 'self'">
   <meta name="referrer" content="strict-origin-when-cross-origin">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>Sufiology — Vedic Astrology You Can Act On</title>
@@ -322,7 +322,7 @@
     <section class="view" id="dashboardView"><div class="page"><h1 class="h2">Dashboard.</h1><p class="page-intro">Booking requests from clients. Set the status of each one, and reply by email or WhatsApp to confirm.</p><div id="dashboardBody"></div></div></section>
     <section class="view legal" id="privacyView"><div class="page">
       <h1 class="h2">Privacy notice.</h1>
-      <p class="page-intro">Last updated: 19 October 2026</p>
+      <p class="page-intro">Last updated: 20 October 2026</p>
 
       <div class="legal-sum">
         <h2>The short version</h2>
@@ -359,7 +359,7 @@
       <ul>
         <li>A random ID stored in your browser. It is saved with your booking request so we can apply the weekly limit. It holds no personal details and is never used for tracking or advertising.</li>
         <li>A scrambled (hashed) version of your network address (IP address). We do not store the network address itself.</li>
-        <li>A security check (hCaptcha) when you sign in or create an account. hCaptcha may collect technical details about your browser and device.</li>
+        <li>A security check (Cloudflare Turnstile) when you sign in or create an account. It may collect technical details about your browser and device to tell people from automated programs.</li>
       </ul>
       <p><b>Why:</b> to apply the limit of 2 booking requests per week and to stop spam and automated abuse.</p>
 
@@ -379,7 +379,7 @@
       <ul>
         <li><b>Supabase</b> stores accounts, booking requests and notes, and provides sign-in. The data is stored in Singapore.</li>
         <li><b>Resend</b> sends us an email when you send a request.</li>
-        <li><b>hCaptcha</b> provides the security check.</li>
+        <li><b>Cloudflare</b> provides the security check (Turnstile).</li>
         <li><b>Google</b> provides the fonts used on this site, so your browser contacts Google’s servers when the page loads. Google also provides “Continue with Google” if you choose it.</li>
         <li><b>GitHub</b> (owned by Microsoft) hosts the website files. GitHub may log the network address of visitors to deliver and protect its service.</li>
         <li><b>WhatsApp (Meta) and your email provider</b> carry our messages when you contact us or we reply to you. Their own policies apply.</li>
@@ -395,7 +395,7 @@
       </ul>
 
       <h2>6. Cookies and browser storage</h2>
-      <p>This site does not use advertising cookies. It keeps a few small items in your browser so it can work: your sign-in session, your light or dark mode choice, and the random ID used for the weekly request limit. The security check (hCaptcha) may also set its own technical cookies or storage.</p>
+      <p>This site does not use advertising cookies. It keeps a few small items in your browser so it can work: your sign-in session, your light or dark mode choice, and the random ID used for the weekly request limit. The security check (Cloudflare Turnstile) may also set its own technical cookies or storage.</p>
 
       <h2>7. Your rights</h2>
       <p>You can ask us to:</p>
@@ -420,7 +420,7 @@
     </div></section>
     <section class="view legal" id="termsView"><div class="page">
       <h1 class="h2">Terms of service.</h1>
-      <p class="page-intro">Last updated: 19 October 2026</p>
+      <p class="page-intro">Last updated: 20 October 2026</p>
 
       <div class="legal-sum">
         <h2>The main points</h2>
