@@ -12,6 +12,16 @@ window.SUF_DATA = {
     satya:   { name: "Satya",   price: 6000, length: "45 minutes" }
   },
 
+  /* ----- Booking status. "key" is what the database stores (supabase/migrations/007_booking_status.sql).
+         "label" is shown on buttons and pills. "note" is the sentence the client reads under their request.
+         The admin picks one on the Dashboard. A new request always starts as not_seen. ----- */
+  bookingStatuses: [
+    { key: "not_seen",  label: "Not seen",  note: "Your request has been sent. Nishaad Sharma has not opened it yet." },
+    { key: "seen",      label: "Seen",      note: "Nishaad Sharma has read your request. A reply by email or WhatsApp is coming." },
+    { key: "scheduled", label: "Scheduled", note: "Your session is scheduled. Check your email or WhatsApp for the time, payment details and video call link." },
+    { key: "done",      label: "Done",      note: "Your session is done. Thank you." }
+  ],
+
   /* ----- Booking rules (the server enforces the same numbers in request-slot) ----- */
   maxRequestsPerWeek: 2,
 

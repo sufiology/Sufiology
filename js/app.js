@@ -9,8 +9,9 @@
     4. Booking: session choice and request form
     5. Blog (public)
     6. Admin: write posts
-    7. Dashboard: booking requests
-    8. Which view is showing (home, blog, admin, dashboard)
+    7. Dashboard: booking requests (the admin sets each request's status)
+    7b. My requests: the client's own requests and their status
+    8. Which view is showing (home, blog, admin, dashboard, my requests)
     9. Start
    ========================================================================== */
 (function () {
@@ -53,8 +54,15 @@
     try { return new Date(date).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" }); }
     catch (e) { return ""; }
   }
+  const hindiNumber = (n) => String(n).replace(/\d/g, (digit) => "०१२३४५६७८९"[digit]);
   const digitsOnly = (text) => String(text).replace(/\D/g, "");
   const tierName = (key) => (sessions[key] || {}).name || key;
+  const statuses = window.SUF_DATA.bookingStatuses;
+  const statusInfo = (key) => statuses.find((s) => s.key === key) || statuses[0];   // an old request with no status counts as "not seen"
+  function formatDateTime(date) {
+    try { return new Date(date).toLocaleString("en-IN", { day: "numeric", month: "short", year: "numeric", hour: "numeric", minute: "2-digit" }); }
+    catch (e) { return ""; }
+  }
 
 
   /* ---------- hCaptcha: the "are you human" box (live mode only) ---------- */
@@ -245,12 +253,26 @@
     return backend.getUser().catch(() => null).then((user) => {
       currentUser = user;
       byId("authText").textContent = user ? "Sign out" : "Sign in";
+      byId("navMine").hidden = !user || user.admin;      // clients only: the admin has the Dashboard (and the top bar is already full)
       byId("navWrite").hidden = !(user && user.admin);
       byId("navDashboard").hidden = !(user && user.admin);
       renderBooking();
       renderBlog();
       renderAdmin();
       renderDashboard();
+      renderMine();
+      numberMenu();
+    });
+  }
+
+  /* The little Hindi number in front of each menu item counts only the items that are showing, so there are no gaps. */
+  function numberMenu() {
+    let count = 0;
+    document.querySelectorAll("#menu li").forEach((item) => {
+      if (item.hidden) return;
+      count += 1;
+      const number = item.querySelector("i");
+      if (number) number.textContent = hindiNumber(count);
     });
   }
 
@@ -306,7 +328,8 @@
       bookingForm.hidden = true;
       message.textContent = sentMessage;
       message.classList.add("sent");
-      actions.append(makeButton("Send another request", () => { sentMessage = ""; renderBooking(); }));
+      actions.append(makeLink("#my-requests", "See your request status"),
+                     makeButton("Send another request", () => { sentMessage = ""; renderBooking(); }));
       return;
     }
 
@@ -411,8 +434,6 @@
 
 
   /* ---------- 5. Blog (public) ---------- */
-  const hindiNumber = (n) => String(n).replace(/\d/g, (digit) => "०१२३४५६७८९"[digit]);
-
   /* One post in the list: a coloured card with the date, title, a short preview and a big Hindi number */
   function buildPostCard(post, number) {
     const card = make("a", "post-card");
@@ -616,7 +637,53 @@
     return link;
   }
 
-  function bookingCard(b) {
+  /* The status picker on each request: four buttons, the current one is filled.
+     Clicking one saves it straight away. "onChange" lets the dashboard refresh its count. */
+  function statusControl(b, onChange) {
+    const wrap = make("div", "status-set");
+    const label = make("span", "status-label", "Status");
+    const group = make("div", "status-options");
+    group.setAttribute("role", "radiogroup");
+    group.setAttribute("aria-label", "Status of this request");
+    const problem = make("p", "status-problem");
+    problem.setAttribute("role", "alert");
+    problem.hidden = true;
+    const buttons = {};
+
+    function show(current) {
+      statuses.forEach((s) => {
+        buttons[s.key].classList.toggle("on", s.key === current);
+        buttons[s.key].setAttribute("aria-checked", s.key === current);
+      });
+    }
+    statuses.forEach((s) => {
+      const button = make("button", "status-opt status-" + s.key, s.label);
+      button.type = "button";
+      button.setAttribute("role", "radio");
+      button.onclick = () => {
+        const before = statusInfo(b.status).key;
+        if (before === s.key) return;
+        problem.hidden = true;
+        show(s.key);                                              // show the change at once
+        Object.values(buttons).forEach((x) => { x.disabled = true; });
+        backend.updateBookingStatus(b.id, s.key)
+          .then((saved) => { b.status = s.key; b.status_updated_at = saved.status_updated_at; if (onChange) onChange(); })
+          .catch(() => {
+            show(before);                                         // put it back
+            problem.textContent = "Could not save the status. Check your connection, and that supabase/migrations/007_booking_status.sql has been run.";
+            problem.hidden = false;
+          })
+          .then(() => { Object.values(buttons).forEach((x) => { x.disabled = false; }); });
+      };
+      buttons[s.key] = button;
+      group.appendChild(button);
+    });
+    show(statusInfo(b.status).key);
+    wrap.append(label, group, problem);
+    return wrap;
+  }
+
+  function bookingCard(b, onChange) {
     const when = `${b.date} at ${b.time}` + (b.timezone ? ` (${b.timezone})` : "");
     const SAFE_EMAIL = /^[A-Za-z0-9._%+\-]+@[A-Za-z0-9.\-]+\.[A-Za-z]{2,}$/;   // never put unchecked text inside a mailto: link
     const replyEmail = SAFE_EMAIL.test(b.contact_email || "") ? b.contact_email : b.email;
@@ -639,7 +706,8 @@
       ? new Date(b.consent_at).toLocaleString("en-IN", { day: "numeric", month: "short", year: "numeric", hour: "numeric", minute: "2-digit" }) + (b.consent_version ? " (terms of " + b.consent_version + ")" : "")
       : "Not recorded (sent before consent was recorded)";
     addDetail(details, "Agreed to terms", document.createTextNode(agreed));
-    card.appendChild(details);
+    addDetail(details, "Sent", document.createTextNode(formatDateTime(b.created_at)));
+    card.append(statusControl(b, onChange), details);
 
     // Reply buttons come with a ready-made message
     const message =
@@ -666,23 +734,77 @@
     const count = make("span");
     const title = make("div", "section-title");
     const heading = make("h2", null, "Booking requests");
+    let loaded = [];
+    // "5 requests, 2 not seen"
+    const updateCount = () => {
+      const notSeen = loaded.filter((b) => statusInfo(b.status).key === "not_seen").length;
+      count.textContent = loaded.length + (notSeen ? " · " + notSeen + " not seen" : "");
+    };
     title.append(heading, count);
     const list = make("div");
     root.append(title, list);
 
     backend.getBookings().then((bookings) => {
       list.textContent = "";
-      count.textContent = String(bookings.length);
+      loaded = bookings;
+      updateCount();
       if (!bookings.length) { list.appendChild(make("p", null, "No requests yet.")); return; }
-      bookings.forEach((b) => list.appendChild(bookingCard(b)));
+      bookings.forEach((b) => list.appendChild(bookingCard(b, updateCount)));
     }).catch(() => { list.textContent = "Could not load requests."; });
+  }
+
+
+  /* ---------- 7b. My requests: what the client sees ---------- */
+  function myRequestCard(b) {
+    const info = statusInfo(b.status);
+    const stepIndex = statuses.indexOf(info);
+    const card = make("article", "panel mine");
+
+    const head = make("div", "request-head");
+    head.append(make("h3", null, tierName(b.tier) + " session"), make("span", "status-pill status-" + info.key, info.label));
+    card.append(head);
+
+    // Four steps. The ones reached so far are filled in.
+    const steps = make("ol", "status-steps");
+    statuses.forEach((s, i) => {
+      const item = make("li", i <= stepIndex ? "reached" : "", s.label);
+      if (i === stepIndex) item.setAttribute("aria-current", "step");
+      steps.appendChild(item);
+    });
+    card.append(steps, make("p", "status-note", info.note));
+
+    const details = make("dl", "request-details");
+    addDetail(details, "Sent", document.createTextNode(formatDateTime(b.created_at)));
+    addDetail(details, "Wanted", document.createTextNode(`${b.date} at ${b.time}` + (b.timezone ? ` (${b.timezone})` : "")));
+    addDetail(details, "Status", document.createTextNode(info.label + (b.status_updated_at ? ", updated " + formatDateTime(b.status_updated_at) : "")));
+    card.appendChild(details);
+    return card;
+  }
+
+  function renderMine() {
+    const root = byId("mineBody");
+    if (!document.body.classList.contains("view-mine")) return;
+    root.textContent = "";
+    if (!currentUser) {
+      root.append(make("p", null, "Sign in to see your booking requests."), makeButton("Sign in", () => openSignInBox("in")));
+      return;
+    }
+    const list = make("div");
+    root.appendChild(list);
+    backend.getMyBookings().then((bookings) => {
+      if (!bookings.length) {
+        list.append(make("p", null, "You have not sent a request yet."), makeLink("#booking", "Book a consultation"));
+        return;
+      }
+      bookings.forEach((b) => list.appendChild(myRequestCard(b)));
+    }).catch(() => { list.textContent = "Could not load your requests. Please try again in a moment."; });
   }
 
   /* ---------- 8. Which view is showing ----------
      Blog, Write, Dashboard, Privacy and Terms are views inside index.html (not separate pages),
      so you stay signed in everywhere. The address ending decides which one shows. */
-  const VIEW_CLASSES = { "view-blog": /^#blog/, "view-admin": /^#admin$/, "view-dashboard": /^#dashboard$/, "view-privacy": /^#privacy$/, "view-terms": /^#terms$/ };
-  const VIEW_LINKS = ["#blog", "#admin", "#dashboard"];
+  const VIEW_CLASSES = { "view-blog": /^#blog/, "view-admin": /^#admin$/, "view-dashboard": /^#dashboard$/, "view-mine": /^#my-requests$/, "view-privacy": /^#privacy$/, "view-terms": /^#terms$/ };
+  const VIEW_LINKS = ["#blog", "#admin", "#dashboard", "#my-requests"];
 
   function applyView() {
     const hash = location.hash;
@@ -703,7 +825,7 @@
     });
   }
 
-  function isViewOpen() { return /\bview-(blog|admin|dashboard|privacy|terms)\b/.test(document.body.className); }
+  function isViewOpen() { return /\bview-(blog|admin|dashboard|mine|privacy|terms)\b/.test(document.body.className); }
 
   /* Where the visitor was on the home page when they opened the Terms or the Privacy notice (for example from the
      booking form), so that coming back puts them at the same spot with everything they typed still in the form. */
@@ -715,8 +837,8 @@
     const scrollBefore = scrollY;
     applyView();
     if (!wasInView && /^#(privacy|terms)$/.test(location.hash)) legalReturnY = scrollBefore;
-    if (/^#(blog|admin|dashboard|privacy|terms)/.test(location.hash)) scrollTo(0, 0);
-    renderBlog(); renderAdmin(); renderDashboard();
+    if (/^#(blog|admin|dashboard|my-requests|privacy|terms)/.test(location.hash)) scrollTo(0, 0);
+    renderBlog(); renderAdmin(); renderDashboard(); renderMine();
 
     // Leaving the Terms or the Privacy notice by "Back to the home page" or the browser's Back button: return to the same spot
     if (wasLegal && legalReturnY !== null && (location.hash === "" || location.hash === "#top")) {
@@ -726,7 +848,7 @@
     }
 
     // Leaving a view: go to the section that was asked for
-    if (wasInView && !/^#(blog|admin|dashboard|privacy|terms)/.test(location.hash)) {
+    if (wasInView && !/^#(blog|admin|dashboard|my-requests|privacy|terms)/.test(location.hash)) {
       let target = null;
       try { target = location.hash.length > 1 && location.hash !== "#top" ? document.querySelector(location.hash) : null; } catch (e) { /* not a valid selector */ }
       if (target) target.scrollIntoView(); else scrollTo(0, 0);

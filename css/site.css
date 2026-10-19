@@ -471,6 +471,9 @@ h1 em    { display: block; font: italic 700 clamp(1.6rem, 4.4vw, 3.2rem)/1.15 va
 .youtube-badge:hover::after { transform: translate(-50%, -50%) scale(1.05); }
 .youtube-badge::before { content: ""; position: absolute; z-index: 1; left: 50%; top: 50%; transform: translate(-35%, -50%); border-left: clamp(20px, 5vw, 32px) solid var(--cream); border-top: clamp(13px, 3.2vw, 20px) solid transparent; border-bottom: clamp(13px, 3.2vw, 20px) solid transparent; }
 @keyframes spin { to { transform: rotate(360deg); } }
+/* Instagram and WhatsApp Community buttons under the YouTube badge. TEMPORARY (v8): delete this rule with the .socials div in index.html if the owner does not want them. */
+.socials { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; margin-top: 34px; }
+.socials .btn { margin: 0; }
 
 /* About */
 .about { display: grid; grid-template-columns: 1.2fr .8fr; gap: clamp(30px, 6vw, 90px); align-items: center; }
@@ -591,10 +594,11 @@ dialog h2 { margin: 0 0 6px; font: 900 2rem var(--font-en); }
 
 /* Hidden views: #blog, #admin, #dashboard replace the home page while open */
 .view { display: none; min-height: 100svh; padding: 70px 0 clamp(52px, 8vw, 100px); background: var(--surface-2); color: var(--fg); }   /* full width: the .page inside adds the side padding */
-body.view-blog #blogView, body.view-admin #adminView, body.view-dashboard #dashboardView, body.view-privacy #privacyView, body.view-terms #termsView { display: block; }
+body.view-blog #blogView, body.view-admin #adminView, body.view-dashboard #dashboardView, body.view-mine #mineView, body.view-privacy #privacyView, body.view-terms #termsView { display: block; }
 body.view-blog main > *:not(#blogView),
 body.view-admin main > *:not(#adminView),
 body.view-dashboard main > *:not(#dashboardView),
+body.view-mine main > *:not(#mineView),
 body.view-privacy main > *:not(#privacyView),
 body.view-terms main > *:not(#termsView) { display: none; }
 
@@ -681,6 +685,30 @@ body.view-terms main > *:not(#termsView) { display: none; }
 .request-actions { display: flex; flex-wrap: wrap; gap: 10px; }
 .request-actions .btn { margin: 0; }
 
+/* Booking status (v8). Same four colours on the Dashboard buttons, the client's pill and the progress steps.
+   Not seen = outline, Seen = black, Scheduled = red, Done = pure yellow (the owner's yellow). */
+.status-set { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; margin: 0 0 14px; }
+.status-label { font-weight: 800; opacity: .6; }
+.status-options { display: flex; flex-wrap: wrap; gap: 8px; }
+.status-opt { padding: 8px 16px; border: 2.5px solid var(--edge); border-radius: 999px; background: none; color: var(--fg); font: 800 .9rem var(--font-en); cursor: pointer; transition: background .15s, color .15s; }
+.status-opt:hover { background: var(--faint-line); }
+.status-opt:disabled { cursor: wait; opacity: .7; }
+.status-opt.on.status-not_seen, .status-pill.status-not_seen { background: none; color: var(--fg); box-shadow: inset 0 0 0 2.5px var(--edge); }
+.status-opt.on.status-not_seen { background: var(--faint-line); }
+.status-opt.on.status-seen,    .status-pill.status-seen    { background: var(--btn-solid); border-color: var(--btn-solid); color: var(--btn-solid-text); }
+.status-opt.on.status-scheduled, .status-pill.status-scheduled { background: var(--red); border-color: var(--red); color: #ffffff; }
+.status-opt.on.status-done,    .status-pill.status-done    { background: #ffff00; border-color: var(--edge); color: #000000; }
+.status-opt.on.status-done { box-shadow: 0 0 0 1px #000000; }
+.status-problem { flex-basis: 100%; margin: 0; font-weight: 700; color: var(--accent); }
+
+/* What the client sees on My requests */
+.status-pill { display: inline-block; padding: 6px 16px; border: 2.5px solid transparent; border-radius: 999px; font: 800 .9rem var(--font-en); }
+.status-steps { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin: 16px 0 12px; padding: 0; list-style: none; }
+.status-steps li { padding-top: 12px; border-top: 6px solid var(--faint-line); font-weight: 700; font-size: .85rem; opacity: .55; }
+.status-steps li.reached { border-top-color: var(--red); opacity: 1; }
+.status-steps li[aria-current="step"] { font-weight: 900; }
+.status-note { margin: 0 0 6px; font-weight: 700; }
+
 
 /* ---------- 11. Small screens and reduced motion ---------- */
 
@@ -727,6 +755,7 @@ body.view-terms main > *:not(#termsView) { display: none; }
   .actions { flex-direction: column; align-items: stretch; gap: 16px; }
   .actions .btn { text-align: center; }
   .request-details { grid-template-columns: 1fr; gap: 2px; }
+  .status-steps li { font-size: .75rem; }
   .request-details dd { margin-bottom: 10px; }
 }
 

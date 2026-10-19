@@ -424,7 +424,7 @@
 
   if ("IntersectionObserver" in window) {
     const observer = new IntersectionObserver((entries) => {
-      const inView = /\bview-(blog|admin|dashboard)\b/.test(document.body.className);
+      const inView = /\bview-(blog|admin|dashboard|mine)\b/.test(document.body.className);
       if (inView) return;
       entries.forEach((entry) => {
         if (!entry.isIntersecting) return;

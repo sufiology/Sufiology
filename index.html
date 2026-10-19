@@ -32,15 +32,17 @@
     <a href="#top" class="brand" aria-label="Sufiology, back to top"><img src="img/sufiology-logo.png" alt="Sufiology" width="275" height="99"></a>
     <nav id="menu" class="nv" aria-label="Main">
       <ol>
+        <!-- Order matches the page from top to bottom (v8). js/app.js renumbers the visible items. -->
         <li><a class="nl" href="#top"><i class="hi" aria-hidden="true">१</i>Home</a></li>
-        <li><a class="nl" href="#about"><i class="hi" aria-hidden="true">२</i>About</a></li>
-        <li><a class="nl" href="#services"><i class="hi" aria-hidden="true">३</i>Services</a></li>
-        <li><a class="nl" href="#blog"><i class="hi" aria-hidden="true">४</i>Notes</a></li>
-        <li><a class="nl" href="#channel"><i class="hi" aria-hidden="true">५</i>Socials</a></li>
+        <li><a class="nl" href="#services"><i class="hi" aria-hidden="true">२</i>Services</a></li>
+        <li><a class="nl" href="#blog"><i class="hi" aria-hidden="true">३</i>Notes</a></li>
+        <li><a class="nl" href="#channel"><i class="hi" aria-hidden="true">४</i>Socials</a></li>
+        <li><a class="nl" href="#about"><i class="hi" aria-hidden="true">५</i>About</a></li>
         <li><a class="nl" href="#contact"><i class="hi" aria-hidden="true">६</i>Contact</a></li>
-        <li id="navWrite" hidden><a class="nl" href="#admin"><i class="hi" aria-hidden="true">७</i>Write</a></li>
-        <li id="navDashboard" hidden><a class="nl" href="#dashboard"><i class="hi" aria-hidden="true">८</i>Dashboard</a></li>
-        <li><a class="nl" href="#" id="authLink"><i class="hi" aria-hidden="true">९</i><span id="authText">Sign in</span></a></li>
+        <li id="navMine" hidden><a class="nl" href="#my-requests"><i class="hi" aria-hidden="true">७</i>My requests</a></li>
+        <li id="navWrite" hidden><a class="nl" href="#admin"><i class="hi" aria-hidden="true">८</i>Write</a></li>
+        <li id="navDashboard" hidden><a class="nl" href="#dashboard"><i class="hi" aria-hidden="true">९</i>Dashboard</a></li>
+        <li><a class="nl" href="#" id="authLink"><i class="hi" aria-hidden="true">१०</i><span id="authText">Sign in</span></a></li>
       </ol>
     </nav>
     <div class="bar-end">
@@ -208,6 +210,11 @@
           <text><textPath href="#youtubeCircle">WATCH ON YOUTUBE • WATCH ON YOUTUBE • </textPath></text>
         </svg>
       </a>
+      <!-- TEMPORARY (v8): Instagram and WhatsApp Community buttons. The owner may remove them; delete this div and the .socials rule in css/site.css. -->
+      <div class="socials">
+        <a class="btn" href="https://www.instagram.com/sufiologyy/" target="_blank" rel="noopener">Instagram @sufiologyy</a>
+        <a class="btn" href="https://chat.whatsapp.com/LPbxJmQD6dOBwZtDQI1Rzj" target="_blank" rel="noopener">WhatsApp Community</a>
+      </div>
     </section>
 
     <!-- ===================== About ===================== -->
@@ -311,7 +318,8 @@
       <div class="page wide"><div id="blogList"></div></div>
     </section>
     <section class="view" id="adminView"><div class="page"><h1 class="h2">Write.</h1><p class="page-intro">Write, edit and publish notes.</p><div id="adminBody"></div></div></section>
-    <section class="view" id="dashboardView"><div class="page"><h1 class="h2">Dashboard.</h1><p class="page-intro">Booking requests from clients. Reply by email or WhatsApp to confirm.</p><div id="dashboardBody"></div></div></section>
+    <section class="view" id="mineView"><div class="page"><h1 class="h2">My requests.</h1><p class="page-intro">Your booking requests and where each one stands. Nishaad Sharma updates the status.</p><div id="mineBody"></div></div></section>
+    <section class="view" id="dashboardView"><div class="page"><h1 class="h2">Dashboard.</h1><p class="page-intro">Booking requests from clients. Set the status of each one, and reply by email or WhatsApp to confirm.</p><div id="dashboardBody"></div></div></section>
     <section class="view legal" id="privacyView"><div class="page">
       <h1 class="h2">Privacy notice.</h1>
       <p class="page-intro">Last updated: 19 October 2026</p>

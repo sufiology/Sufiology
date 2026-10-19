@@ -135,6 +135,21 @@
     },
     getBookings() {
       return Promise.resolve(preview.load().bookings.slice().reverse());
+    },
+    // The signed-in client's own requests, newest first
+    getMyBookings() {
+      const store = preview.load();
+      return Promise.resolve(store.bookings.filter((b) => b.email === store.signedIn).reverse());
+    },
+    // Admin only: set not_seen, seen, scheduled or done
+    updateBookingStatus(id, status) {
+      const store = preview.load();
+      const booking = store.bookings.find((b) => b.id === id);
+      if (!booking) return Promise.reject(new Error("Request not found."));
+      booking.status = status;
+      booking.status_updated_at = new Date().toISOString();
+      preview.save(store);
+      return Promise.resolve({ status, status_updated_at: booking.status_updated_at });
     }
   };
 
@@ -249,6 +264,26 @@
     getBookings() {
       return supabase.from("bookings").select("*").order("created_at", { ascending: false })
         .then((result) => { if (result.error) throw result.error; return result.data; });
+    },
+    // The signed-in client's own requests. Only the columns the client needs (no device or network ids).
+    getMyBookings() {
+      return supabase.auth.getSession().then((result) => {
+        const session = result.data && result.data.session;
+        if (!session) return [];
+        return supabase.from("bookings")
+          .select("id, tier, date, time, timezone, created_at, status, status_updated_at")
+          .eq("user_id", session.user.id).order("created_at", { ascending: false })
+          .then((rows) => { if (rows.error) throw rows.error; return rows.data; });
+      });
+    },
+    // Admin only (the database allows nobody else). Needs supabase/migrations/007_booking_status.sql.
+    updateBookingStatus(id, status) {
+      return supabase.from("bookings").update({ status }).eq("id", id).select("status, status_updated_at")
+        .then((result) => {
+          if (result.error) throw result.error;
+          if (!result.data || !result.data.length) throw new Error("The status was not saved.");   // no row changed: not allowed
+          return result.data[0];
+        });
     }
   };
 
