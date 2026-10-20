@@ -44,6 +44,11 @@
     button.onclick = onClick;
     return button;
   }
+  // Shows a button as pressed for a moment (used when Enter presses it, where the mouse cannot show it)
+  function flashPressed(button) {
+    button.classList.add("pressed");
+    setTimeout(() => button.classList.remove("pressed"), 180);
+  }
   function makeLink(href, label) {
     const link = make("a", "btn", label);
     link.href = href;
@@ -245,7 +250,10 @@
         if (!token) { showAuthProblem("One moment: the human check is still running. Wait a second, then press the button again."); return; }
       }
       const submit = byId("authSubmit");
+      const idleLabel = submit.textContent;
+      flashPressed(submit);
       submit.disabled = true;
+      submit.textContent = signInMode === "in" ? "Signing in…" : "Creating account…";
       action(email, password, token)
         .then((outcome) => {
           byId("authPassword").value = "";
@@ -254,7 +262,7 @@
           return refreshAll();
         })
         .catch((error) => { showAuthProblem(friendlyAuthError(error, signInMode)); })
-        .then(() => { submit.disabled = false; if (captchaOn && captchaId !== null) window.turnstile.reset(captchaId); });
+        .then(() => { submit.disabled = false; submit.textContent = idleLabel; if (captchaOn && captchaId !== null) window.turnstile.reset(captchaId); });
     };
     return box;
   }
@@ -532,13 +540,24 @@
     input.maxLength = 6; input.placeholder = "6-digit code"; input.setAttribute("aria-label", "6-digit code");
     let factorId = null;
 
+    // One place for the message under the box, so a problem shows in red and normal progress does not
+    const say = (text, problem) => { message.textContent = text; message.classList.toggle("bad", !!problem); };
+
     const confirm = makeButton("Confirm", () => {
+      flashPressed(confirm);                                   // visible even when Enter pressed it
       const code = input.value.replace(/\s/g, "");
-      if (!/^\d{6}$/.test(code)) { message.textContent = "Enter the 6 digits from your authenticator app."; return; }
+      if (!/^\d{6}$/.test(code)) { say("Enter the 6 digits from your authenticator app.", true); input.focus(); return; }
       confirm.disabled = true;
+      confirm.classList.add("busy");
+      confirm.textContent = "Checking…";
+      say("Checking your code…", false);
       backend.twoStepVerify(code, factorId)
         .then(refreshAll)
-        .catch(() => { message.textContent = "That code didn’t work. Check the code and try again."; confirm.disabled = false; });
+        .catch(() => {
+          confirm.disabled = false; confirm.classList.remove("busy"); confirm.textContent = "Confirm";
+          say("That code didn’t work. Check the code and try again.", true);
+          input.select();
+        });
     });
     // Pressing Enter in the code box does the same as pressing Confirm
     input.addEventListener("keydown", (event) => {

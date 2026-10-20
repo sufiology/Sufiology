@@ -793,7 +793,14 @@ body.view-terms main > *:not(#termsView) { display: none; }
 
 /* Admin two-step sign-in */
 .twostep { max-width: 460px; }
-.twostep input { font: 700 1.2rem var(--font-en); letter-spacing: .2em; padding: 10px 14px; width: 11ch; }
+.twostep input { font: 700 1.2rem var(--font-en); letter-spacing: .3em; padding: 12px 16px; width: 9.5em; max-width: 100%;
+  border: 2.5px solid var(--edge); border-radius: 14px; background: var(--field); color: var(--fg); }
+.twostep input::placeholder { letter-spacing: normal; font-weight: 600; opacity: .6; }
+.twostep input:focus, .twostep input:focus-visible { outline: 3px solid var(--red); outline-offset: 2px; box-shadow: none; }   /* one clean ring; the page-wide white ring made a double border */
+.twostep p[role="status"] { min-height: 1.6em; margin: 12px 0 0; }
+.twostep p.bad { color: var(--red); font-weight: 700; }
+.btn.pressed { transform: scale(.94); }
+.btn.busy, .btn:disabled { opacity: .75; cursor: wait; }
 .twostep code { display: block; overflow-wrap: anywhere; margin: 8px 0 14px; }
 .twostep-qr { display: block; margin: 12px 0; background: #fff; padding: 8px; border-radius: 12px; }
 
