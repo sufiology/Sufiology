@@ -188,6 +188,15 @@
 
     byId("authClose").onclick = () => box.close();
 
+    // Pressing Enter in the email or password box sends the form, the same as pressing the Sign in button
+    [byId("authEmail"), byId("authPassword")].forEach((field) => {
+      field.addEventListener("keydown", (event) => {
+        if (event.key !== "Enter" || event.isComposing) return;
+        event.preventDefault();
+        byId("authForm").requestSubmit();
+      });
+    });
+
     // Clicking anywhere outside the white box (on the dark backdrop) closes it too
     box.addEventListener("click", (event) => {
       const edge = box.getBoundingClientRect();
@@ -531,6 +540,12 @@
         .then(refreshAll)
         .catch(() => { message.textContent = "That code didn’t work. Check the code and try again."; confirm.disabled = false; });
     });
+    // Pressing Enter in the code box does the same as pressing Confirm
+    input.addEventListener("keydown", (event) => {
+      if (event.key !== "Enter" || event.isComposing) return;
+      event.preventDefault();
+      if (!confirm.disabled) confirm.click();
+    });
     const codeRow = make("div", "form-actions");
     codeRow.append(input, confirm);
 
@@ -741,26 +756,68 @@
     if (!currentUser || !currentUser.admin) { adminOnlyNotice(root); return; }
     if (currentUser.needsTwoStep) { twoStepPanel(root); return; }
 
+    /* Two lists: requests still being handled, and completed bookings (status "Done").
+       Setting a request to Done moves it to "Completed bookings" at once; setting it back moves it back. */
     const count = make("span");
     const title = make("div", "section-title");
-    const heading = make("h2", null, "Booking requests");
+    title.append(make("h2", null, "Booking requests"), count);
+    const movedNote = make("p", "moved-note");
+    movedNote.setAttribute("role", "status");
+    movedNote.hidden = true;
+    const openList = make("div");
+
+    const completed = make("details", "completed-section");
+    const completedCount = make("span");
+    const completedTitle = make("summary", "section-title");
+    completedTitle.append(make("h2", null, "Completed bookings"), completedCount);
+    const completedList = make("div");
+    completed.append(completedTitle, completedList);
+
+    root.append(title, movedNote, openList, completed);
+
     let loaded = [];
-    // "5 requests, 2 not seen"
-    const updateCount = () => {
-      const notSeen = loaded.filter((b) => statusInfo(b.status).key === "not_seen").length;
-      count.textContent = loaded.length + (notSeen ? " · " + notSeen + " not seen" : "");
-    };
-    title.append(heading, count);
-    const list = make("div");
-    root.append(title, list);
+    let doneIds = new Set();            // which requests were in "Completed" the last time the lists were drawn
+    let noteTimer = null;
+    const isDone = (b) => statusInfo(b.status).key === "done";
+    const whenDone = (b) => new Date(b.status_updated_at || b.created_at).getTime() || 0;
+
+    function say(text) {
+      movedNote.textContent = text;
+      movedNote.hidden = false;
+      clearTimeout(noteTimer);
+      noteTimer = setTimeout(() => { movedNote.hidden = true; }, 8000);
+    }
+
+    function drawLists() {
+      const open = loaded.filter((b) => !isDone(b));
+      const finished = loaded.filter(isDone).sort((x, y) => whenDone(y) - whenDone(x));   // most recently completed first
+      const notSeen = open.filter((b) => statusInfo(b.status).key === "not_seen").length;
+      count.textContent = open.length + " open" + (notSeen ? " · " + notSeen + " not seen" : "");
+      completedCount.textContent = String(finished.length);
+      doneIds = new Set(finished.map((b) => b.id));
+
+      openList.textContent = "";
+      if (!loaded.length) openList.appendChild(make("p", null, "No requests yet."));
+      else if (!open.length) openList.appendChild(make("p", null, "No open requests. Everything is completed."));
+      open.forEach((b) => openList.appendChild(bookingCard(b, () => statusSaved(b))));
+
+      completedList.textContent = "";
+      if (!finished.length) completedList.appendChild(make("p", null, "No completed bookings yet. A request moves here when you set its status to Done."));
+      finished.forEach((b) => completedList.appendChild(bookingCard(b, () => statusSaved(b))));
+    }
+
+    // Called after a status was saved: redraw, and tell the admin where a request went
+    function statusSaved(b) {
+      const wasDone = doneIds.has(b.id);
+      drawLists();
+      if (isDone(b) && !wasDone) say("Moved " + b.name + " to Completed bookings. Open that section below to see it, or to change the status back.");
+      else if (!isDone(b) && wasDone) say("Moved " + b.name + " back to Booking requests.");
+    }
 
     backend.getBookings().then((bookings) => {
-      list.textContent = "";
       loaded = bookings;
-      updateCount();
-      if (!bookings.length) { list.appendChild(make("p", null, "No requests yet.")); return; }
-      bookings.forEach((b) => list.appendChild(bookingCard(b, updateCount)));
-    }).catch(() => { list.textContent = "Could not load requests."; });
+      drawLists();
+    }).catch(() => { openList.textContent = "Could not load requests."; });
   }
 
 

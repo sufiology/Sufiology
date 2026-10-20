@@ -823,3 +823,12 @@ body.view-terms main > *:not(#termsView) { display: none; }
 .legal-sum h2 { margin-top: .9em; }
 .legal ol { padding-left: 1.4em; margin: .5em 0 1em; }
 .legal ol li { margin: .35em 0; font-size: 1.05rem; line-height: 1.7; }
+
+
+/* ---------- Dashboard: completed bookings section (v12) ---------- */
+.moved-note { margin: 16px 0 0; padding: 12px 16px; border: 2.5px solid var(--edge); border-radius: 14px; font-weight: 700; }
+.completed-section { margin-top: 44px; border-top: 3px solid var(--edge); }
+.completed-section > summary.section-title { cursor: pointer; list-style: none; margin-top: 22px; }
+.completed-section > summary.section-title::-webkit-details-marker { display: none; }
+.completed-section > summary.section-title::after { content: "Show"; margin-left: auto; font: 800 .9rem var(--font-en); text-decoration: underline; text-underline-offset: 3px; }
+.completed-section[open] > summary.section-title::after { content: "Hide"; }
