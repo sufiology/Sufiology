@@ -9,7 +9,7 @@
 (function () {
   "use strict";
 
-  const CLOSE_AFTER_MS = 2000;                // how long the pointer may stay away before the menu hides
+  const CLOSE_AFTER_MS = 1000;                // how long the pointer may stay away before the menu hides
 
   const bar = document.querySelector(".bar");
   const area = document.querySelector(".bar-start");     // the three lines, the logo and the menu panel
