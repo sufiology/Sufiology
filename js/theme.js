@@ -15,6 +15,10 @@
   try { if (window.top !== window.self) window.top.location = window.self.location; } catch (error) { document.documentElement.style.display = "none"; }
 
 
+  // Home page picture: one of three, chosen at random on every visit (see "4. Hero" in css/site.css).
+  // Picture 1 is the original print with the moving flames. If anything goes wrong the page simply stays on picture 1.
+  try { document.documentElement.setAttribute("data-scene", String(1 + Math.floor(Math.random() * 3))); } catch (error) { /* stays on picture 1 */ }
+
   const STORAGE_KEY = "sufiology-theme";
   const THEME_COLOR = { light: "#ffffff", dark: "#000000" };     // browser toolbar colour on phones
   const root = document.documentElement;

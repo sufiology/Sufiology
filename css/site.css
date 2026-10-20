@@ -311,6 +311,16 @@ section.hero .actions .btn.outline:hover { background: #ffffff; border-color: #f
   section.hero .hero-text { max-width: none; }
   section.hero::before { background: linear-gradient(180deg, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 0) 22%, rgba(0, 0, 0, .88) 56%, rgba(0, 0, 0, .94) 100%); }
 }
+/* Random home picture: js/theme.js puts data-scene="1", "2" or "3" on <html>. Picture 1 is the default above.
+   Wide screens use img/hero-N.webp (1536 x 1024, figure on the right); phones use img/hero-N-m.webp (portrait crop). */
+html[data-scene="2"] section.hero { background-image: url("../img/hero-2.webp"); }
+html[data-scene="3"] section.hero { background-image: url("../img/hero-3.webp"); }
+@media (max-width: 1000px) {
+  html[data-scene="2"] section.hero { background-image: url("../img/hero-2-m.webp"); }
+  html[data-scene="3"] section.hero { background-image: url("../img/hero-3-m.webp"); }
+}
+section.hero h1 em { text-wrap: balance; }   /* if the third line wraps, keep both lines even */
+
 
 h1 { font-size: inherit; font-weight: 900; line-height: 1; }
 /* Each headline line is nudged left by the empty space the font puts before its first letter, so V, a and y start on one straight edge. js/visuals.js measures it into --ink-shift. */

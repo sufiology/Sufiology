@@ -21,6 +21,7 @@
   const canvas = document.getElementById("live");
   const hero = document.querySelector("section.hero");
   if (!canvas || !hero) return;
+  if ((document.documentElement.getAttribute("data-scene") || "1") !== "1") { canvas.hidden = true; return; }   // the flames are painted for picture 1 only
 
   const reducedMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
   const wideScreen = matchMedia("(min-width: 1001px)");
