@@ -192,7 +192,7 @@ section { padding: clamp(52px, 8vw, 100px) var(--gutter); scroll-margin-top: 80p
   cursor: pointer;
   transition: transform .2s;
 }
-.btn:hover { transform: rotate(-3deg) scale(1.05); background: var(--ink); color: #ffffff; }
+@media (hover: hover) { .btn:hover { transform: rotate(-3deg) scale(1.05); background: var(--ink); color: #ffffff; } }
 .btn.outline { background: none; border: 3px solid var(--cream); color: var(--cream); }
 
 /* Top progress bar */
@@ -235,17 +235,21 @@ section { padding: clamp(52px, 8vw, 100px) var(--gutter); scroll-margin-top: 80p
 .bar .brand { background: var(--brand-bg); padding: 0 24px; box-shadow: 0 0 0 2px var(--ink); }
 .brand img { display: block; height: 32px; width: auto; position: relative; top: 3px; } /* the artwork has tall capitals and descenders; top: 3px puts the letters (not the empty box) in the middle of the pill */
 .bar .b { background: var(--red); color: #ffffff; }
-.bar .b:hover { background: var(--ink); color: var(--pop); }
-.bar .brand:hover { background: var(--red); }
+@media (hover: hover) { .bar .b:hover { background: var(--ink); color: var(--pop); } }
+@media (hover: hover) { .bar .brand:hover { background: var(--red); } }
 .bar button { background: var(--surface-2); color: var(--fg); }
-.bar button:hover { background: var(--btn-solid); color: var(--btn-solid-text); }
+@media (hover: hover) { .bar button:hover { background: var(--btn-solid); color: var(--btn-solid-text); } }
 .bar-end { display: flex; align-items: center; gap: 10px; pointer-events: none; }
+/* Phones and tablets: once the page has scrolled, a solid strip sits behind the bar so text and boxes do not show through it (v25). */
+.bar::before { content: ""; position: absolute; z-index: -1; inset: -12px calc(-1 * var(--gutter)) -8px; background: var(--surface-1); border-bottom: 2px solid var(--edge); opacity: 0; pointer-events: none; transition: opacity .2s; }
+@media (min-width: 1001px) { .bar::before { display: none; } }
+.bar.scrolled::before { opacity: 1; }
 .bar .b .long-label { margin-left: .3em; }
 .bar-start { position: relative; display: flex; align-items: center; gap: 10px; pointer-events: none; }
 
 /* Menu button: three lines in a white pill with a black ring (same as the logo pill, readable on every picture). It turns into a cross when the menu is open. */
 #menuButton { width: 48px; padding: 0; background: #ffffff; color: #000000; box-shadow: 0 0 0 2px #000000; }
-#menuButton:hover, .bar.open #menuButton { background: var(--red); color: #ffffff; }
+@media (hover: hover) { #menuButton:hover, .bar.open #menuButton { background: var(--red); color: #ffffff; } }
 .burger { position: relative; display: block; width: 20px; height: 14px; }
 .burger i { position: absolute; left: 0; width: 100%; height: 2.5px; border-radius: 2px; background: currentColor; transition: transform .25s ease, opacity .2s ease, top .25s ease; }
 .burger i:nth-child(1) { top: 0; }
@@ -257,7 +261,7 @@ section { padding: clamp(52px, 8vw, 100px) var(--gutter); scroll-margin-top: 80p
 
 /* Light / dark slider: the sun sits on the left in light mode, the moon slides to the right in dark mode */
 .bar .theme-toggle { position: relative; width: 64px; height: 34px; min-height: 34px; padding: 0; background: var(--toggle-track); transition: background-color .3s; }
-.bar .theme-toggle:hover { background: var(--toggle-track); }
+@media (hover: hover) { .bar .theme-toggle:hover { background: var(--toggle-track); } }
 .theme-knob {
   position: absolute; top: 3px; left: 3px; width: 28px; height: 28px;
   display: grid; place-items: center; border-radius: 50%;
@@ -328,9 +332,9 @@ section.hero::before { content: ""; position: absolute; inset: 0; z-index: 0; po
 section.hero .hero-1, section.hero h1 em, section.hero .lede b { color: var(--red); }
 section.hero .hero-2, section.hero .lede { color: #ffffff; }
 section.hero .actions .btn { background: var(--red); color: #ffffff; }
-section.hero .actions .btn:hover { background: #ffffff; color: var(--ink); }
+@media (hover: hover) { section.hero .actions .btn:hover { background: #ffffff; color: var(--ink); } }
 section.hero .actions .btn.outline { background: none; border-color: #ffffff; color: #ffffff; }
-section.hero .actions .btn.outline:hover { background: #ffffff; border-color: #ffffff; color: var(--ink); }
+@media (hover: hover) { section.hero .actions .btn.outline:hover { background: #ffffff; border-color: #ffffff; color: var(--ink); } }
 @media (max-width: 1000px) {
   section.hero { align-items: flex-end; padding: 0 var(--gutter) clamp(28px, 6vw, 64px); background-image: url("../img/ganesha.webp"); background-position: center top; background-size: auto 62%; background-color: #000; }
   section.hero .hero-text { max-width: none; }
@@ -365,9 +369,9 @@ h1 em    { display: block; font: italic 700 clamp(1.6rem, 4.4vw, 3.2rem)/1.15 va
 
 .actions { display: flex; flex-wrap: wrap; gap: 22px; margin-top: 22px; }
 .actions .btn { margin: 0; pointer-events: auto; background: var(--btn-solid); color: var(--btn-solid-text); }
-.actions .btn:hover { background: var(--red); color: #fff; }
+@media (hover: hover) { .actions .btn:hover { background: var(--red); color: #fff; } }
 .actions .btn.outline { background: none; border-color: var(--fg); color: var(--fg); }
-.actions .btn.outline:hover { background: var(--btn-solid); border-color: var(--btn-solid); color: var(--btn-solid-text); }
+@media (hover: hover) { .actions .btn.outline:hover { background: var(--btn-solid); border-color: var(--btn-solid); color: var(--btn-solid-text); } }
 
 
 /* ---------- 5. Marquees (the two rotated scrolling strips) ---------- */
@@ -394,7 +398,7 @@ h1 em    { display: block; font: italic 700 clamp(1.6rem, 4.4vw, 3.2rem)/1.15 va
   padding: 14px 24px; border-radius: 999px; cursor: pointer;
   border: 3px solid var(--cream); background: none; color: var(--cream);
 }
-.chip:hover { background: var(--cream); color: var(--deep); }
+@media (hover: hover) { .chip:hover { background: var(--cream); color: var(--deep); } }
 .chip[aria-pressed="true"] { background: var(--pop); border-color: var(--pop); color: var(--ink); }
 .answer { max-width: 46rem; padding: clamp(24px, 4vw, 48px); border-radius: 32px; background: var(--band-ink); transform: rotate(-1deg); }
 .answer h3 { margin-bottom: 10px; font: 900 clamp(1.4rem, 3vw, 2.2rem)/1.05 var(--font-en); color: var(--pop); }
@@ -471,8 +475,8 @@ h1 em    { display: block; font: italic 700 clamp(1.6rem, 4.4vw, 3.2rem)/1.15 va
   transition: transform .3s;
 }
 .card > * { position: relative; z-index: 1; }
-.card:hover { transform: rotate(1.5deg) scale(1.02); }
-.card:nth-child(2):hover { transform: rotate(-1.5deg) scale(1.02); }
+@media (hover: hover) { .card:hover { transform: rotate(1.5deg) scale(1.02); } }
+@media (hover: hover) { .card:nth-child(2):hover { transform: rotate(-1.5deg) scale(1.02); } }
 .card h3 { margin-bottom: 16px; font: 900 clamp(1.7rem, 3.6vw, 3rem)/1 var(--font-en); }
 .card .price { margin: 2px 0 4px; font: 900 clamp(2.6rem, 5vw, 3.8rem)/1 var(--font-en); }
 .card .length { margin-bottom: 16px; font: 800 1rem var(--font-en); }
@@ -508,7 +512,7 @@ h1 em    { display: block; font: italic 700 clamp(1.6rem, 4.4vw, 3.2rem)/1.15 va
 .youtube-badge svg { display: block; width: 100%; animation: spin 16s linear infinite; }
 .youtube-badge text { font: 900 26px var(--font-en); fill: var(--ink); }
 .youtube-badge::after { content: ""; position: absolute; left: 50%; top: 50%; width: 34%; aspect-ratio: 1; transform: translate(-50%, -50%); border-radius: 50%; background: var(--red); box-shadow: 0 0 0 6px var(--ink); transition: transform .35s ease; }
-.youtube-badge:hover::after { transform: translate(-50%, -50%) scale(1.05); }
+@media (hover: hover) { .youtube-badge:hover::after { transform: translate(-50%, -50%) scale(1.05); } }
 .youtube-badge::before { content: ""; position: absolute; z-index: 1; left: 50%; top: 50%; transform: translate(-35%, -50%); border-left: clamp(20px, 5vw, 32px) solid var(--cream); border-top: clamp(13px, 3.2vw, 20px) solid transparent; border-bottom: clamp(13px, 3.2vw, 20px) solid transparent; }
 @keyframes spin { to { transform: rotate(360deg); } }
 /* Instagram and WhatsApp Community buttons under the YouTube badge. TEMPORARY (v8): delete this rule with the .socials div in index.html if the owner does not want them. */
@@ -529,7 +533,7 @@ h1 em    { display: block; font: italic 700 clamp(1.6rem, 4.4vw, 3.2rem)/1.15 va
 
 .badge { position: relative; display: block; width: min(58vw, 300px); margin: 30px auto 0; text-decoration: none; }
 .badge svg { display: block; width: 100%; animation: spin 16s linear infinite; }
-.badge:hover svg { animation-duration: 3s; }
+@media (hover: hover) { .badge:hover svg { animation-duration: 3s; } }
 .badge-disc { fill: var(--disc); }
 .badge text { font: 900 26px var(--font-en); fill: var(--fg); }
 .badge::after { content: "Book"; position: absolute; inset: 0; display: grid; place-items: center; font: 900 clamp(2rem, 8vw, 3.6rem) var(--font-en); color: var(--fg); }
@@ -549,7 +553,7 @@ h1 em    { display: block; font: italic 700 clamp(1.6rem, 4.4vw, 3.2rem)/1.15 va
   background: var(--surface-2); color: var(--fg);
   border: 3px solid var(--edge);
 }
-.booking-actions .btn:hover { background: var(--btn-solid); color: var(--btn-solid-text); }
+@media (hover: hover) { .booking-actions .btn:hover { background: var(--btn-solid); color: var(--btn-solid-text); } }
 .booking-message { margin-top: 14px; font-weight: 700; }
 /* The confirmation shown after a request is sent (the form is hidden then) */
 .booking-message.sent {
@@ -587,7 +591,7 @@ h1 em    { display: block; font: italic 700 clamp(1.6rem, 4.4vw, 3.2rem)/1.15 va
   color-scheme: var(--scheme);               /* the open list follows light / dark mode */
 }
 .phone select option { background: var(--field); color: var(--fg); }
-.phone select option:hover, .phone select option:focus, .phone select option:checked { background: var(--red) !important; color: #ffffff !important; box-shadow: 0 0 0 100px var(--red) inset; }
+@media (hover: hover) { .phone select option:hover, .phone select option:focus, .phone select option:checked { background: var(--red) !important; color: #ffffff !important; box-shadow: 0 0 0 100px var(--red) inset; } }
 .fld .phone input { flex: 1; width: auto; min-width: 0; margin: 0; }
 
 
@@ -595,7 +599,7 @@ h1 em    { display: block; font: italic 700 clamp(1.6rem, 4.4vw, 3.2rem)/1.15 va
 .contact { background: var(--band-deep); }
 .contact .btn { margin-right: 10px; }
 .mail { display: block; margin-top: 24px; font: 900 clamp(1.3rem, 6vw, 4.4rem)/1.05 var(--font-en); color: var(--pop); text-decoration: none; overflow-wrap: anywhere; }
-.mail:hover { color: var(--cream); }
+@media (hover: hover) { .mail:hover { color: var(--cream); } }
 footer { padding: 50px var(--gutter) 28px; background: var(--band-red); color: var(--band-red-text); overflow: hidden; }
 .footer-mark { font: 900 clamp(3rem, 20vw, 17rem)/.85 var(--font-en); white-space: nowrap; }
 .fine a { color: var(--accent); font-weight: 700; text-decoration: underline; text-underline-offset: 3px; }
@@ -616,7 +620,7 @@ dialog h2 { margin: 0 0 6px; font: 900 2rem var(--font-en); }
 #authDone .btn { margin-top: 10px; }
 #authPasswordHint { margin: 4px 0 8px; }
 .btn-google { display: flex; align-items: center; justify-content: center; gap: 12px; width: 100%; min-height: 48px; padding: 10px 16px; border: 2.5px solid var(--edge); border-radius: 999px; background: #ffffff; color: #1f1f1f; font: 700 1rem var(--font-en); cursor: pointer; }
-.btn-google:hover { background: #f1f1f1; }
+@media (hover: hover) { .btn-google:hover { background: #f1f1f1; } }
 .btn-google:disabled { opacity: .6; cursor: wait; }
 .auth-or { display: flex; align-items: center; gap: 12px; margin: 14px 0 0; font-size: .9rem; opacity: .8; }
 .auth-or::before, .auth-or::after { content: ""; flex: 1; border-top: 2px solid var(--edge); }
@@ -673,7 +677,7 @@ body.view-terms main > *:not(#termsView) { display: none; }
   border-radius: 30px; color: var(--ink); text-decoration: none;
   transition: transform .3s;
 }
-.post-card:hover { transform: rotate(-1deg) scale(1.02); }
+@media (hover: hover) { .post-card:hover { transform: rotate(-1deg) scale(1.02); } }
 .post-card:nth-child(3n + 1) { background: var(--surface-2); color: var(--fg); border: 3px solid var(--edge); }
 .post-card:nth-child(3n + 2) { background: var(--post-2); color: var(--post-2-text); }
 .post-card:nth-child(3n) { background: var(--band-ink); color: var(--cream); }
@@ -708,7 +712,7 @@ body.view-terms main > *:not(#termsView) { display: none; }
 /* Small buttons and the little label pills */
 .btn.small { margin: 0; padding: 10px 18px; font-size: .9rem; }
 .btn.danger { background: none; border: 3px solid var(--edge); color: var(--fg); }
-.btn.danger:hover { background: var(--red); border-color: var(--red); color: #fff; }
+@media (hover: hover) { .btn.danger:hover { background: var(--red); border-color: var(--red); color: #fff; } }
 .pill { display: inline-block; padding: 4px 12px; border-radius: 999px; background: var(--btn-solid); color: var(--btn-solid-text); font: 800 .8rem var(--font-en); }
 .pill.draft { background: none; border: 2px solid var(--edge); color: var(--fg); }
 .form-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 16px; margin-top: 8px; }
@@ -734,7 +738,7 @@ body.view-terms main > *:not(#termsView) { display: none; }
 .status-label { font-weight: 800; opacity: .6; }
 .status-options { display: flex; flex-wrap: wrap; gap: 8px; }
 .status-opt { padding: 8px 16px; border: 2.5px solid var(--edge); border-radius: 999px; background: none; color: var(--fg); font: 800 .9rem var(--font-en); cursor: pointer; transition: background .15s, color .15s; }
-.status-opt:hover { background: var(--faint-line); }
+@media (hover: hover) { .status-opt:hover { background: var(--faint-line); } }
 .status-opt:disabled { cursor: wait; opacity: .7; }
 .status-opt.on.status-not_seen, .status-pill.status-not_seen { background: none; color: var(--fg); box-shadow: inset 0 0 0 2.5px var(--edge); }
 .status-opt.on.status-not_seen { background: var(--faint-line); }
@@ -756,7 +760,7 @@ body.view-terms main > *:not(#termsView) { display: none; }
 /* My account (v14): two tabs, My details and My requests, at the top of both pages */
 .subtabs { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 22px; }
 .subtabs a { padding: 9px 20px; border: 3px solid var(--edge); border-radius: 999px; color: var(--fg); font: 800 .9rem var(--font-en); text-decoration: none; }
-.subtabs a:hover, .subtabs a[aria-current="page"] { background: var(--btn-solid); border-color: var(--btn-solid); color: var(--btn-solid-text); }
+@media (hover: hover) { .subtabs a:hover, .subtabs a[aria-current="page"] { background: var(--btn-solid); border-color: var(--btn-solid); color: var(--btn-solid-text); } }
 
 /* My details page (v14): the optional saved details */
 .account-form { max-width: 560px; }
@@ -765,56 +769,6 @@ body.view-terms main > *:not(#termsView) { display: none; }
 .account-form .booking-message { min-height: 1.4em; }
 #accountSignedOut { margin-top: 22px; }
 #accountSignedOut .btn { margin: 10px 0 0; }
-.section-title { display: flex; align-items: baseline; gap: 12px; margin: 40px 0 0; }
-.section-title h2 { margin: 0; }
-.section-title span { font-weight: 700; opacity: .6; }
-
-/* Small buttons and the little label pills */
-.btn.small { margin: 0; padding: 10px 18px; font-size: .9rem; }
-.btn.danger { background: none; border: 3px solid var(--edge); color: var(--fg); }
-.btn.danger:hover { background: var(--red); border-color: var(--red); color: #fff; }
-.pill { display: inline-block; padding: 4px 12px; border-radius: 999px; background: var(--btn-solid); color: var(--btn-solid-text); font: 800 .8rem var(--font-en); }
-.pill.draft { background: none; border: 2px solid var(--edge); color: var(--fg); }
-.form-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 16px; margin-top: 8px; }
-.form-actions .btn { margin: 0; }
-
-/* Your posts */
-.post-row { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 12px; padding: 14px 0; border-top: 2px solid var(--faint-line); }
-.post-row-title { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; font-weight: 800; }
-.post-row-buttons { display: flex; gap: 10px; }
-
-/* Booking requests */
-.request-head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 10px; }
-.request-when { margin: 6px 0 14px; font-weight: 700; opacity: .75; }
-.request-details { display: grid; grid-template-columns: 6.5em 1fr; gap: 8px 14px; margin: 0 0 18px; padding-top: 14px; border-top: 2px solid var(--faint-line); }
-.request-details dt { font-weight: 800; opacity: .6; }
-.request-details dd { margin: 0; overflow-wrap: anywhere; }
-.request-actions { display: flex; flex-wrap: wrap; gap: 10px; }
-.request-actions .btn { margin: 0; }
-
-/* Booking status (v8). Same four colours on the Dashboard buttons, the client's pill and the progress steps.
-   Not seen = outline, Seen = black, Scheduled = red, Done = pure yellow (the owner's yellow). */
-.status-set { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; margin: 0 0 14px; }
-.status-label { font-weight: 800; opacity: .6; }
-.status-options { display: flex; flex-wrap: wrap; gap: 8px; }
-.status-opt { padding: 8px 16px; border: 2.5px solid var(--edge); border-radius: 999px; background: none; color: var(--fg); font: 800 .9rem var(--font-en); cursor: pointer; transition: background .15s, color .15s; }
-.status-opt:hover { background: var(--faint-line); }
-.status-opt:disabled { cursor: wait; opacity: .7; }
-.status-opt.on.status-not_seen, .status-pill.status-not_seen { background: none; color: var(--fg); box-shadow: inset 0 0 0 2.5px var(--edge); }
-.status-opt.on.status-not_seen { background: var(--faint-line); }
-.status-opt.on.status-seen,    .status-pill.status-seen    { background: var(--btn-solid); border-color: var(--btn-solid); color: var(--btn-solid-text); }
-.status-opt.on.status-scheduled, .status-pill.status-scheduled { background: var(--red); border-color: var(--red); color: #ffffff; }
-.status-opt.on.status-done,    .status-pill.status-done    { background: #ffff00; border-color: var(--edge); color: #000000; }
-.status-opt.on.status-done { box-shadow: 0 0 0 1px #000000; }
-.status-problem { flex-basis: 100%; margin: 0; font-weight: 700; color: var(--accent); }
-
-/* What the client sees on My requests */
-.status-pill { display: inline-block; padding: 6px 16px; border: 2.5px solid transparent; border-radius: 999px; font: 800 .9rem var(--font-en); }
-.status-steps { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin: 16px 0 12px; padding: 0; list-style: none; }
-.status-steps li { padding-top: 12px; border-top: 6px solid var(--faint-line); font-weight: 700; font-size: .85rem; opacity: .55; }
-.status-steps li.reached { border-top-color: var(--red); opacity: 1; }
-.status-steps li[aria-current="step"] { font-weight: 900; }
-.status-note { margin: 0 0 6px; font-weight: 700; }
 
 
 /* ---------- 11. Small screens and reduced motion ---------- */
@@ -866,13 +820,14 @@ body.view-terms main > *:not(#termsView) { display: none; }
 .fld .dt { margin-top: 6px; }
 .dt .dt-text, .fld .dt .dt-text, .weekday .dt .dt-text { margin-top: 0; }
 .dt .dt-text { padding-right: 62px; }
+.dt-hint { display: block; margin-top: 6px; font: 600 .85rem/1.35 var(--font-en); opacity: .7; }
 .dt .dt-pick {
   position: absolute; top: 50%; right: 8px; transform: translateY(-50%);
   display: flex; align-items: center; justify-content: center;
   width: 44px; height: 44px; padding: 0; border: 0; border-radius: 999px;
   background: var(--red); color: #ffffff; cursor: pointer;
 }
-.dt .dt-pick:hover { background: var(--ink); }
+@media (hover: hover) { .dt .dt-pick:hover { background: var(--ink); } }
 .dt .dt-pick:focus-visible { outline: 3px solid var(--ink); outline-offset: 2px; }
 /* The real date or time input stays under the button, invisible, so the phone's picker opens right there */
 .dt .dt-native, .fld .dt .dt-native, .weekday .dt .dt-native {
@@ -960,6 +915,6 @@ body.view-terms main > *:not(#termsView) { display: none; }
 .faq-more .actions { margin-top: 20px; }
 .faq-more .btn { background: var(--btn-solid); color: var(--btn-solid-text); }
 .faq-more .btn.outline { background: none; border-color: var(--fg); color: var(--fg); }
-.faq-more .btn:hover { background: var(--red); border-color: var(--red); color: #ffffff; }
+@media (hover: hover) { .faq-more .btn:hover { background: var(--red); border-color: var(--red); color: #ffffff; } }
 /* The white background runs edge to edge. The content column (1000px wide) is centred with side padding, not by narrowing the section (v22 fix: it used to leave black strips on both sides). */
 .faq-page { padding-left: max(var(--gutter), calc((100% - 1000px) / 2)); padding-right: max(var(--gutter), calc((100% - 1000px) / 2)); }

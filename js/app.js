@@ -284,7 +284,7 @@
       currentUser = user;
       if (!user) savedDetails = null;
       byId("authText").textContent = user ? "Sign out" : "Sign in";
-      byId("navMine").hidden = !user || user.admin;      // "My account" (My details and My requests): clients only. The admin has the Dashboard, and the top bar is already full.
+      byId("navMine").hidden = !user;      // "My account" (My details and My requests): every signed-in account, the admin too (v25; the menu is a dropdown now, so there is room)
       byId("navWrite").hidden = !(user && user.admin);
       byId("navDashboard").hidden = !(user && user.admin);
       return loadSavedDetails().then(() => {
@@ -301,7 +301,7 @@
 
   /* Reads the client's saved My account details (a client only; nothing for the admin or a signed-out visitor). */
   function loadSavedDetails() {
-    if (!currentUser || currentUser.admin) { savedDetails = null; return Promise.resolve(); }
+    if (!currentUser) { savedDetails = null; return Promise.resolve(); }
     return backend.getAccountDetails().then((details) => { savedDetails = details; })
       .catch(() => { savedDetails = null; });   // the booking form simply stays empty if this cannot be read
   }
@@ -487,6 +487,9 @@
   function setUpBookingForm() {
     // Earliest date you can pick is today
     const today = new Date();
+    // Nobody can be born tomorrow: the three birth date boxes stop at today (the weekday finder at the top of the page too)
+    const todayIso = today.getFullYear() + "-" + ("0" + (today.getMonth() + 1)).slice(-2) + "-" + ("0" + today.getDate()).slice(-2);
+    ["fBirthDate", "aBirthDate", "birthday"].forEach((id) => { const box = byId(id); if (box) box.max = todayIso; });
     byId("fDate").min = today.getFullYear() + "-" + ("0" + (today.getMonth() + 1)).slice(-2) + "-" + ("0" + today.getDate()).slice(-2);
     byId("timezoneNote").textContent = "Times are in your own time zone" + (timeZone ? " (" + timeZone + ")" : "") + ".";
 
@@ -598,14 +601,13 @@
     if (!document.body.classList.contains("view-account")) return;
     const notice = byId("accountSignedOut");
     notice.textContent = "";
-    const isClient = !!currentUser && !currentUser.admin;
+    const isClient = !!currentUser;
     notice.hidden = isClient;
     accountForm.hidden = !isClient;
     if (!currentUser) {
       notice.append("Sign in to save your details. ", makeButton("Sign in", () => openSignInBox("in")));
       return;
     }
-    if (currentUser.admin) { notice.textContent = "My account is for client accounts."; return; }
     byId("accountEmail").textContent = currentUser.email;
     if (!accountDirty) fillAccountForm(savedDetails);
   }
@@ -636,10 +638,12 @@
       accountDirty = false;
       fillAccountForm(savedDetails);
       if (!bookingForm.hidden) { prefillBookingForm(); showAccountNote(); }   // an open form gets its empty boxes filled (typed text is never replaced)
-      sayAboutAccount("Saved. The booking form will fill itself in from these details.");
+      sayAboutAccount("Details saved. The booking form will fill itself in from them.");
+      saveButton.textContent = "Saved";                                   // shows for 2 seconds, then the normal label returns
+      setTimeout(() => { saveButton.textContent = "Save my details"; }, 2000);
     }).catch(() => {
       sayAboutAccount("Could not save your details. Please try again in a moment.");
-    }).then(() => { saveButton.disabled = false; });
+    }).then(() => { saveButton.disabled = false; saveButton.blur(); });
   };
 
   byId("accountRemove").onclick = () => {

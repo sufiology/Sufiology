@@ -90,7 +90,7 @@
     text.inputMode = "numeric";
     text.autocomplete = "off";
     text.maxLength = isDate ? 10 : 8;
-    text.placeholder = isDate ? "dd/mm/yyyy" : "hh:mm";
+    text.placeholder = isDate ? "dd/mm/yyyy" : "hh:mm (24-hour)";
     text.required = native.required;
     text.setAttribute("aria-label", native.getAttribute("aria-label") || (isDate ? "Date, day / month / year" : "Time, hours : minutes"));
 
@@ -103,6 +103,13 @@
     // Swap: the original input moves inside the wrapper, hidden but still alive, so the picker can open from it
     native.parentNode.insertBefore(wrapper, native);
     wrapper.append(text, button, native);
+    // Time boxes say which format to use (v25). Typing "6:30 pm" also works and is turned into 24-hour time.
+    if (!isDate) {
+      const hint = document.createElement("small");
+      hint.className = "dt-hint";
+      hint.textContent = "24-hour time, for example 18:30. You can also type 6:30 pm.";
+      wrapper.after(hint);
+    }
     native.classList.add("dt-native");
     native.required = false;            // the visible box does the "required" check instead
     native.tabIndex = -1;
@@ -128,6 +135,9 @@
         sendToNative("");
       } else if (isDate && native.min && value < native.min) {
         showProblem("Pick today or a later date.");
+        sendToNative("");
+      } else if (isDate && native.max && value > native.max) {
+        showProblem("This date cannot be in the future.");       // birth dates (app.js sets max to today)
         sendToNative("");
       } else {
         showProblem("");
@@ -157,7 +167,7 @@
     });
 
     // The booking date has a "min" set by app.js after load; re-check when it changes
-    new MutationObserver(check).observe(native, { attributes: true, attributeFilter: ["min"] });
+    new MutationObserver(check).observe(native, { attributes: true, attributeFilter: ["min", "max"] });
     showProblem(text.required ? "Please fill this in." : "");
   }
 

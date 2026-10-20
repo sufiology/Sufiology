@@ -56,5 +56,6 @@
     const goingDown = scrollY > previousY && scrollY > 300;
     bar.style.transform = goingDown && !isOpen() ? "translateY(-160%)" : "";
     previousY = scrollY;
+    bar.classList.toggle("scrolled", scrollY > 8);      // phones: the bar gets a solid strip behind it so the page does not show through (css "3. Top bar")
   }, { passive: true });
 })();
