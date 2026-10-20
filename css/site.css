@@ -330,7 +330,7 @@ html[data-scene="3"] section.hero { background-image: url("../img/hero-3.webp");
 @media (min-width: 1001px) {
   html[data-scene="2"] section.hero { background-position: left center; justify-content: flex-end; padding: 110px 8vw 56px 0; }
   html[data-scene="2"] section.hero .hero-text { max-width: 38vw; width: 38vw; }
-  html[data-scene="2"] section.hero::before { background: linear-gradient(270deg, rgba(0, 0, 0, .55) 0%, rgba(0, 0, 0, .42) 38%, rgba(0, 0, 0, 0) 58%); }
+  html[data-scene="2"] section.hero::before { background: linear-gradient(270deg, rgba(0, 0, 0, .22) 0%, rgba(0, 0, 0, .14) 45%, rgba(0, 0, 0, 0) 70%); }   /* only a light fade: the picture is not darkened */
 }
 section.hero h1 em { text-wrap: balance; }   /* if the third line wraps, keep both lines even */
 

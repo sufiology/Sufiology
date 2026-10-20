@@ -1,14 +1,15 @@
 /* ==========================================================================
    Live hero background for picture 2 (Ganesha on the lotus, on the left, looking right at the text).
-   Very quiet movement, painted on top of img/hero-2.webp:
-     - the aura around Ganesha breathes: a soft warm glow that swells and fades, and one faint ring
-       that drifts slowly outwards
-     - a few of the small lotus flowers and buds sway a tiny bit on their stems
+   Quiet movement, painted on top of img/hero-2.webp:
+     - the aura around Ganesha breathes: a soft warm glow swells and fades, and two faint rings drift slowly
+       outwards. Ganesha is cut out with img/hero-2-aura-mask.webp, so the light never touches him.
+     - three of the small lotus flowers around him sway a little, as if a light wind blows
+       (img/hero-2-plate.webp is the same picture without those flowers, so no static copy shows underneath)
 
    Same method as js/live.js: all positions are in PICTURE pixels (the print is 1536 x 1024). The page shows the
    print as a "cover" background, left aligned, so this file works out where the picture sits and draws in
    picture pixels. A "warped patch" copies a small piece of the picture row by row and shifts each row a little
-   (most at the top of the stem, nothing at the bottom) with soft edges so the copy blends in.
+   (most at the flower, nothing at the bottom of the stem) with soft edges so the copy blends in.
 
    Wide screens only (phones use another picture). Nothing runs for people who asked for reduced motion.
    Paused while the hero is off screen or the tab is hidden. To tune the feel, change the settings just below.
@@ -28,93 +29,129 @@
 
   /* ----- Settings you may want to tweak ----- */
   const PICTURE_WIDTH = 1536, PICTURE_HEIGHT = 1024;   // size of img/hero-2.webp
-  const LOTUS_SWAY = 1.3;            // picture pixels a flower sways at the top (keep small)
-  const LOTUS_SPEED = 1.0;           // how fast they sway (1 = slow and gentle)
-  const AURA_GLOW = 0.075;           // brightest the aura glow gets (0 = none)
-  const AURA_SPEED = 0.55;           // how fast the glow breathes
-  const RING_OPACITY = 0.085;        // how visible the drifting ring is (0 = none)
-  const RING_SECONDS = 9;            // time for the ring to drift out and fade
+  const WIND_SWAY = 3.4;             // picture pixels the top of a flower moves (bigger = stronger breeze)
+  const WIND_SPEED = 1.0;            // how fast the breeze changes (1 = gentle)
+  const AURA_GLOW_LOW = 0.10;        // glow brightness at its dimmest
+  const AURA_GLOW_HIGH = 0.26;       // glow brightness at its brightest (0 = none)
+  const AURA_SPEED = 0.7;            // how fast the glow breathes
+  const RING_OPACITY = 0.30;         // how visible the drifting rings are (0 = none)
+  const RING_SECONDS = 8;            // time for a ring to drift out and fade
 
   /* ----- Where things are, in picture pixels ----- */
   const AURA = { x: 425, y: 531, radius: 283 };          // the round halo behind Ganesha
+  const AURA_BOX = { x: 90, y: 196, w: 670, h: 670 };    // the part of the picture the mask file covers
 
   const pen = canvas.getContext("2d");
-  const picture = new Image();
-  let pictureReady = false;
-  picture.onload = () => { pictureReady = true; resize(); };
-  picture.src = "img/hero-2.webp";
+  const picture = new Image(), plate = new Image(), mask = new Image();
+  let loaded = 0;
+  function oneLoaded() { loaded++; if (loaded === 3) resize(); }
+  [[picture, "img/hero-2.webp"], [plate, "img/hero-2-plate.webp"], [mask, "img/hero-2-aura-mask.webp"]].forEach(([image, src]) => {
+    image.onload = oneLoaded; image.src = src;
+  });
+
+  const aura = document.createElement("canvas");          // the aura is drawn here first, then Ganesha is cut out
+  aura.width = AURA_BOX.w; aura.height = AURA_BOX.h;
+  const auraPen = aura.getContext("2d");
 
   let running = false, lastTime = 0, clock = 0;
 
-  function makePatch(box, wave) {
-    const pad = 5;
+  /* ----- A light breeze: a slow main sway plus smaller wobbles, and the odd gust ----- */
+  function breeze(t) {
+    const gust = 0.7 + 0.3 * Math.sin(t * 0.33);
+    return gust * (0.6 * Math.sin(t * 0.95) + 0.28 * Math.sin(t * 1.9 + 1.3) + 0.12 * Math.sin(t * 3.4 + 0.4));
+  }
+
+  function makePatch(box, lag, strength) {
+    const pad = 6, coverPad = 14;
     const piece = document.createElement("canvas");
     piece.width = box.w + pad * 2; piece.height = box.h + pad * 2;
-    return { box, wave, pad, piece, pieceCtx: piece.getContext("2d") };
+    const cover = document.createElement("canvas");
+    cover.width = box.w + coverPad * 2; cover.height = box.h + coverPad * 2;
+    return { box, lag, strength, pad, coverPad, piece, pieceCtx: piece.getContext("2d"), cover, coverCtx: cover.getContext("2d"), covered: false };
   }
 
-  /* a lotus on its stem: free at the top, fixed at the bottom; each one has its own rhythm */
-  function lotusWave(seed, strength) {
-    return (p, t) => LOTUS_SWAY * strength * Math.pow(1 - p, 1.4) *
-      (Math.sin(t * 1.25 * LOTUS_SPEED + seed + p * 1.5) * 0.7 + Math.sin(t * 0.8 * LOTUS_SPEED + seed * 2.3) * 0.3);
-  }
-
+  /* three flowers close to Ganesha: the right bud, and the open flower on each side */
   const patches = [
-    makePatch({ x: 124, y: 703, w: 38, h: 70 },  lotusWave(0.0, 1.0)),   // bud, left of Ganesha
-    makePatch({ x: 88,  y: 810, w: 62, h: 66 },  lotusWave(1.7, 1.0)),   // open flower, left
-    makePatch({ x: 140, y: 850, w: 25, h: 44 },  lotusWave(3.1, 0.8)),   // small bud, left
-    makePatch({ x: 690, y: 703, w: 40, h: 72 },  lotusWave(4.4, 1.0)),   // bud, right of Ganesha
-    makePatch({ x: 698, y: 810, w: 64, h: 70 },  lotusWave(5.9, 1.0)),   // open flower, right
-    makePatch({ x: 686, y: 850, w: 26, h: 44 },  lotusWave(2.4, 0.8))    // small bud, right
+    makePatch({ x: 690, y: 703, w: 40, h: 72 }, 0.0, 0.9),     // bud, right of Ganesha
+    makePatch({ x: 88,  y: 810, w: 62, h: 66 }, 1.1, 1.0),     // open flower, left
+    makePatch({ x: 698, y: 810, w: 64, h: 70 }, 2.3, 1.0)      // open flower, right
   ];
 
+  function feather(ctx, w, h, inner) {
+    ctx.globalCompositeOperation = "destination-in";
+    ctx.save();
+    ctx.translate(w / 2, h / 2);
+    ctx.scale(w / 2, h / 2);
+    const fade = ctx.createRadialGradient(0, 0, 0, 0, 0, 1);
+    fade.addColorStop(0, "rgba(0,0,0,1)");
+    fade.addColorStop(inner, "rgba(0,0,0,1)");
+    fade.addColorStop(1, "rgba(0,0,0,0)");
+    ctx.fillStyle = fade;
+    ctx.fillRect(-1, -1, 2, 2);
+    ctx.restore();
+    ctx.globalCompositeOperation = "source-over";
+  }
+
   function drawPatch(patch, time) {
-    const { box, wave, pad, piece, pieceCtx } = patch;
-    pieceCtx.globalCompositeOperation = "source-over";
+    const { box, lag, strength, pad, coverPad, piece, pieceCtx, cover, coverCtx } = patch;
+    // 1. the still picture without the flower, so the flower is not drawn twice
+    if (!patch.covered) {
+      coverCtx.clearRect(0, 0, cover.width, cover.height);
+      coverCtx.drawImage(plate, box.x - coverPad, box.y - coverPad, cover.width, cover.height, 0, 0, cover.width, cover.height);
+      feather(coverCtx, cover.width, cover.height, 0.9);
+      patch.covered = true;
+    }
+    pen.drawImage(cover, box.x - coverPad, box.y - coverPad);
+    // 2. the flower copied row by row, each row shifted a little by the breeze
     pieceCtx.clearRect(0, 0, piece.width, piece.height);
+    const wind = breeze(time * WIND_SPEED - lag);
     for (let row = 0; row < piece.height; row++) {
       const progress = Math.min(1, Math.max(0, (row - pad) / box.h));
-      const shift = wave(progress, time);
+      const shift = WIND_SWAY * strength * wind * Math.pow(1 - progress, 1.5);
       pieceCtx.drawImage(picture, box.x - pad - shift, box.y - pad + row, piece.width, 1, 0, row, piece.width, 1);
     }
-    // soft edges so the copy melts into the picture underneath
-    pieceCtx.globalCompositeOperation = "destination-in";
-    pieceCtx.save();
-    pieceCtx.translate(piece.width / 2, piece.height / 2);
-    pieceCtx.scale(piece.width / 2, piece.height / 2);
-    const fade = pieceCtx.createRadialGradient(0, 0, 0, 0, 0, 1);
-    fade.addColorStop(0, "rgba(0,0,0,1)");
-    fade.addColorStop(0.72, "rgba(0,0,0,1)");
-    fade.addColorStop(1, "rgba(0,0,0,0)");
-    pieceCtx.fillStyle = fade;
-    pieceCtx.fillRect(-1, -1, 2, 2);
-    pieceCtx.restore();
+    feather(pieceCtx, piece.width, piece.height, 0.72);
     pen.drawImage(piece, box.x - pad, box.y - pad);
   }
 
-  /* ----- The aura: a breathing glow near the edge of the halo, and one faint ring drifting outwards ----- */
+  /* ----- The aura: a breathing glow around the halo and rings drifting outwards, never over Ganesha ----- */
   function drawAura(time) {
     const { x, y, radius } = AURA;
-    const breathe = 0.5 + 0.5 * Math.sin(time * AURA_SPEED);                 // 0 to 1, slow
-    const strength = AURA_GLOW * (0.35 + 0.65 * breathe);
-    const glow = pen.createRadialGradient(x, y, radius * 0.62, x, y, radius * 1.16);
-    glow.addColorStop(0, "rgba(255, 150, 70, 0)");
-    glow.addColorStop(0.55, `rgba(255, 150, 70, ${strength})`);
-    glow.addColorStop(1, "rgba(255, 130, 50, 0)");
-    pen.fillStyle = glow;
-    pen.beginPath(); pen.arc(x, y, radius * 1.16, 0, 7); pen.fill();
+    const cx = x - AURA_BOX.x, cy = y - AURA_BOX.y;
+    auraPen.globalCompositeOperation = "source-over";
+    auraPen.clearRect(0, 0, aura.width, aura.height);
 
-    const phase = (time % RING_SECONDS) / RING_SECONDS;                        // 0 to 1, then starts again
-    const ringRadius = radius * (0.84 + 0.2 * phase);
-    const alpha = RING_OPACITY * Math.sin(Math.PI * phase);
-    pen.strokeStyle = `rgba(255, 190, 110, ${alpha})`;
-    pen.lineWidth = 2.2;
-    pen.beginPath(); pen.arc(x, y, ringRadius, 0, 7); pen.stroke();
+    const breathe = 0.5 + 0.5 * Math.sin(time * AURA_SPEED);                 // 0 to 1, slow
+    const strength = AURA_GLOW_LOW + (AURA_GLOW_HIGH - AURA_GLOW_LOW) * breathe;
+    const swell = 1 + 0.03 * Math.sin(time * AURA_SPEED);                  // the glow also swells a touch
+    const glow = auraPen.createRadialGradient(cx, cy, radius * 0.5 * swell, cx, cy, radius * 1.17 * swell);
+    glow.addColorStop(0, "rgba(255, 150, 70, 0)");
+    glow.addColorStop(0.5, `rgba(255, 160, 80, ${strength})`);
+    glow.addColorStop(1, "rgba(255, 130, 50, 0)");
+    auraPen.fillStyle = glow;
+    auraPen.beginPath(); auraPen.arc(cx, cy, radius * 1.17 * swell, 0, 7); auraPen.fill();
+
+    for (let i = 0; i < 2; i++) {                                           // two rings, half a cycle apart
+      const phase = ((time / RING_SECONDS) + i * 0.5) % 1;                    // 0 to 1, then starts again
+      const ringRadius = radius * (0.80 + 0.30 * phase);
+      const alpha = RING_OPACITY * Math.sin(Math.PI * phase);
+      auraPen.strokeStyle = `rgba(255, 200, 120, ${alpha})`;
+      auraPen.lineWidth = 3;
+      auraPen.beginPath(); auraPen.arc(cx, cy, ringRadius, 0, 7); auraPen.stroke();
+    }
+
+    auraPen.globalCompositeOperation = "destination-out";                   // cut Ganesha out, so nothing is drawn on him
+    auraPen.drawImage(mask, 0, 0);
+    auraPen.globalCompositeOperation = "source-over";
+
+    pen.globalCompositeOperation = "lighter";                               // the glow adds light instead of covering
+    pen.drawImage(aura, AURA_BOX.x, AURA_BOX.y);
+    pen.globalCompositeOperation = "source-over";
   }
 
   /* ----- Placing the drawing on top of the print ----- */
   function resize() {
-    if (!pictureReady) return;
+    if (loaded < 3) return;
     const box = hero.getBoundingClientRect();
     const ratio = Math.min(devicePixelRatio || 1, 2);
     canvas.width = Math.round(box.width * ratio);
@@ -133,9 +170,7 @@
     pen.setTransform(1, 0, 0, 1, 0, 0); pen.clearRect(0, 0, canvas.width, canvas.height);
     pen.restore();
     patches.forEach((patch) => drawPatch(patch, clock));
-    pen.globalCompositeOperation = "lighter";              // glow adds light instead of covering
     drawAura(clock);
-    pen.globalCompositeOperation = "source-over";
   }
 
   function loop(now) {
@@ -148,7 +183,7 @@
 
   let onScreen = true;
   function start() {
-    if (running || !pictureReady || !wideScreen.matches || !onScreen || document.hidden) return;
+    if (running || loaded < 3 || !wideScreen.matches || !onScreen || document.hidden) return;
     running = true; lastTime = 0;
     requestAnimationFrame(loop);
   }
