@@ -247,7 +247,7 @@
   const hero = document.querySelector(".hero");
   const trailCanvas = byId("trail");
 
-  /* trail colour: red normally, gold on home picture 3 (--trail-rgb in css/site.css) */
+  /* trail colour: red by default (a theme may set --trail-rgb in css/site.css) */
   const TRAIL_RGB = (getComputedStyle(document.documentElement).getPropertyValue("--trail-rgb") || "").trim() || "229,9,20";
   const trailPen = trailCanvas.getContext("2d");
   const TRAIL_LIFETIME_MS = 380;

@@ -311,19 +311,11 @@ section.hero .actions .btn.outline:hover { background: #ffffff; border-color: #f
   section.hero .hero-text { max-width: none; }
   section.hero::before { background: linear-gradient(180deg, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 0) 22%, rgba(0, 0, 0, .88) 56%, rgba(0, 0, 0, .94) 100%); }
 }
-/* Random home picture: js/theme.js puts data-scene="1", "2" or "3" on <html>. Picture 1 is the default above.
-   Wide screens use img/hero-N.webp (1536 x 1024, figure on the right); phones use img/hero-N-m.webp (portrait crop). */
+/* Random home picture: js/theme.js puts data-scene="1" or "2" on <html>. Picture 1 is the default above.
+   Wide screens use img/hero-N.webp (1536 x 1024); phones use img/hero-N-m.webp (portrait crop). */
 html[data-scene="2"] section.hero { background-image: url("../img/hero-2.webp"); }
-html[data-scene="3"] section.hero { background-image: url("../img/hero-3.webp"); }
 @media (max-width: 1000px) {
   html[data-scene="2"] section.hero { background-image: url("../img/hero-2-m.webp"); }
-  html[data-scene="3"] section.hero { background-image: url("../img/hero-3-m.webp"); }
-}
-/* Picture 3 has Ganesha in the middle of the frame (about 43% to 72% across), so the text column is kept narrower and starts a little further left than on pictures 1 and 2 */
-@media (min-width: 1001px) {
-  html[data-scene="3"] section.hero { padding-left: 7vw; }
-  html[data-scene="3"] section.hero .hero-text { max-width: 35vw; }
-  html[data-scene="3"] section.hero::before { background: linear-gradient(90deg, rgba(0, 0, 0, .6) 0%, rgba(0, 0, 0, .42) 30%, rgba(0, 0, 0, 0) 46%); }
 }
 /* Picture 2 has Ganesha on the LEFT (he looks to the right), so the text moves to the right side, as if he is looking at it.
    The picture is left aligned; the dark fade for the text runs from the right edge. Animated by js/live2.js. */
@@ -862,54 +854,6 @@ body.view-terms main > *:not(#termsView) { display: none; }
 .completed-section > summary.section-title::-webkit-details-marker { display: none; }
 .completed-section > summary.section-title::after { content: "Show"; margin-left: auto; font: 800 .9rem var(--font-en); text-decoration: underline; text-underline-offset: 3px; }
 .completed-section[open] > summary.section-title::after { content: "Hide"; }
-
-/* ==========================================================================
-   Colour theme for home picture 3 (the cosmic swirl painting).
-   js/theme.js puts data-scene="3" on <html> when that picture is chosen. The red / black / white theme does not
-   suit that painting, so here the same tokens are remapped to midnight navy, sapphire blue and gold (the colours
-   of the painting). Pictures 1 and 2 keep the normal red theme. Light and dark mode both stay supported.
-   Navy #0a1024, sapphire #2a4bb8, deep sapphire #1a2f86, gold #e3b04b, light gold #f2c75c.
-   ========================================================================== */
-html[data-scene="3"] {
-  --ink: #0a1024;
-  --red: #2a4bb8;                    /* sapphire takes the place of red (white text on it stays readable) */
-  --deep: #1a2f86;
-  --yolk: #f2c75c;
-  --pop: #f2c75c;                    /* accent text and lines on the coloured bands */
-  --disc: rgba(42, 75, 184, .12);
-  --sky-accent: #d49a2a;             /* sun and highlight ring of the planet canvas (js/sky.js) */
-  --trail-rgb: 242, 199, 92;         /* the cursor trail on the home picture (js/visuals.js) */
-}
-html[data-scene="3"][data-theme="dark"] {
-  --ink: #0a1024;
-  --red: #2a4bb8;
-  --deep: #1a2f86;
-  --surface-1: #0a1024;
-  --surface-2: #0f1a3d;
-  --field: #15224c;
-  --edge-shadow: #e3b04b;
-  --accent: #f2c75c;                 /* blue would be too dim on navy, so accent text turns gold */
-  --btn-solid: #e3b04b;
-  --btn-solid-text: #0a1024;
-  --disc: rgba(242, 199, 92, .12);
-  --band-red: #2a4bb8;
-  --band-deep: #1a2f86;
-  --band-ink: #0a1024;
-  --strip-bg: #2a4bb8;
-  --card-1: #f5ebd7;
-  --card-1-text: #0a1024;
-  --card-2: #0a1024;
-  --card-3: #2a4bb8;
-  --post-2: #2a4bb8;
-}
-/* the hero sits on the dark painting, so its headline, buttons and the Book pill are gold */
-html[data-scene="3"] section.hero .hero-1,
-html[data-scene="3"] section.hero h1 em,
-html[data-scene="3"] section.hero .lede b { color: #f2c75c; }
-html[data-scene="3"] section.hero .actions .btn:not(.outline),
-html[data-scene="3"] .bar .b { background: #e3b04b; color: #0a1024; }
-html[data-scene="3"] section.hero .actions .btn:not(.outline):hover,
-html[data-scene="3"] .bar .b:hover { background: #ffffff; color: #0a1024; }
 
 /* FAQ (v17): plain <details> boxes in the same look as the booking boxes. Colours come from the theme tokens, so dark mode works. */
 .faq { background: var(--surface-1); color: var(--fg); }
