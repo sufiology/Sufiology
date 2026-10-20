@@ -68,6 +68,9 @@
      Hindi uses Sahitya. */
   --font-en: "SF Pro Display", -apple-system, BlinkMacSystemFont, "Inter", system-ui, "Segoe UI", Roboto, sans-serif;
   --font-hi: "Sahitya", "Noto Serif Devanagari", serif;
+  /* Anaktoria (v26): body text and the hero line "solve your celestial issues.". The font files go in the fonts folder (fonts/README.txt).
+     Until they are there, the browser quietly uses the normal font. Headings and buttons keep SF Pro / Inter. */
+  --font-body: "Anaktoria", var(--font-en);
 
   /* Letter spacing ("tracking"). English -2.5 percent, Hindi -5.5 percent.
      These two lines are the only place to change it. */
@@ -146,11 +149,15 @@
 
 html { scroll-behavior: smooth; overflow-x: clip; }
 
+/* Anaktoria, public domain (George Douros). The download has ONE style only (Anaktoria.ttf), so bold and italic are
+   made by the browser from it. The file goes in fonts/ (see fonts/README.txt). */
+@font-face { font-family: "Anaktoria"; font-style: normal; font-weight: 100 900; font-display: swap; src: local("Anaktoria"), url("../fonts/Anaktoria.woff2") format("woff2"), url("../fonts/Anaktoria.ttf") format("truetype"); }
+
 body {
   margin: 0;
   background: var(--ink);
   color: var(--cream);
-  font: 1.12rem/1.6 var(--font-en);
+  font: 1.12rem/1.6 var(--font-body);
   overflow-x: hidden;
   padding-top: env(safe-area-inset-top, 0px);
   padding-bottom: env(safe-area-inset-bottom, 0px);
@@ -356,13 +363,15 @@ html[data-scene="2"] section.hero { background-image: url("../img/hero-2.webp");
 section.hero h1 em { text-wrap: balance; }   /* if the third line wraps, keep both lines even */
 
 
+/* Headings stay in SF Pro / Inter; only the body text uses Anaktoria */
+h1, h2, h3, h4, h5, h6 { font-family: var(--font-en); }
 h1 { font-size: inherit; font-weight: 900; line-height: 1; }
 /* Each headline line is nudged left by the empty space the font puts before its first letter, so V, a and y start on one straight edge. js/visuals.js measures it into --ink-shift. */
 .hero-1, .hero-2, h1 em { margin-left: var(--ink-shift, 0em); }
 .hero-1 { display: block; font: 900 clamp(4.4rem, 15vw, 11rem)/.85 var(--font-en); color: var(--accent); }
 .hero-1 { font-size: calc(clamp(4.4rem, 15vw, 11rem) * var(--vedic-scale, 1)); } /* js/visuals.js sets --vedic-scale so "Vedic" ends where "astrology" ends */
 .hero-2 { display: block; font: 900 clamp(2.4rem, 7.6vw, 6rem)/1 var(--font-en); }
-h1 em    { display: block; font: italic 700 clamp(1.6rem, 4.4vw, 3.2rem)/1.15 var(--font-en); color: var(--accent); margin-top: .15em; }
+h1 em    { display: block; font: italic 700 clamp(1.6rem, 4.4vw, 3.2rem)/1.15 var(--font-body); color: var(--accent); margin-top: .15em; }
 
 .lede { margin-top: 22px; max-width: 34em; font-size: 1.12rem; font-weight: 500; line-height: 1.55; }
 .lede b { display: block; margin-bottom: 6px; font: italic 700 1.25em var(--font-en); color: var(--accent); }
