@@ -390,31 +390,9 @@
 
   /* ---------- 10. Top bar ---------- */
   const bar = document.querySelector(".bar");
-  const menuButton = byId("menuButton");
   const menu = byId("menu");
 
-  // Slide the bar away when scrolling down, bring it back when scrolling up
-  let previousScrollY = 0;
-  addEventListener("scroll", () => {
-    const goingDown = scrollY > previousScrollY && scrollY > 300;
-    bar.style.transform = goingDown && !bar.classList.contains("open") ? "translateY(-160%)" : "";
-    previousScrollY = scrollY;
-  }, { passive: true });
-
-  // Mobile dropdown menu
-  function setMenuOpen(open) {
-    bar.classList.toggle("open", open);
-    menuButton.setAttribute("aria-expanded", open);
-    menuButton.textContent = open ? "Close" : "Menu";
-  }
-  menuButton.addEventListener("click", () => setMenuOpen(!bar.classList.contains("open")));
-  menu.querySelectorAll("a").forEach((a) => a.addEventListener("click", () => setMenuOpen(false)));
-  addEventListener("keydown", (event) => {
-    if (event.key === "Escape" && bar.classList.contains("open")) { setMenuOpen(false); menuButton.focus(); }
-  });
-  document.addEventListener("click", (event) => {
-    if (bar.classList.contains("open") && !bar.contains(event.target)) setMenuOpen(false);
-  });
+  // Opening, closing and hiding the bar on scroll: js/nav.js
 
   // Highlight the menu link of the section you are looking at.
   // (js/app.js does the same for Blog, Write and Dashboard, which are separate views.)

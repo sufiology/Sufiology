@@ -241,8 +241,19 @@ section { padding: clamp(52px, 8vw, 100px) var(--gutter); scroll-margin-top: 80p
 .bar button:hover { background: var(--btn-solid); color: var(--btn-solid-text); }
 .bar-end { display: flex; align-items: center; gap: 10px; pointer-events: none; }
 .bar .b .long-label { margin-left: .3em; }
-#menuButton { display: none; background: #ffffff; color: #000000; box-shadow: 0 0 0 2px #000000; }   /* white pill with a black ring, same as the logo pill: readable on white, black and red */
+.bar-start { position: relative; display: flex; align-items: center; gap: 10px; pointer-events: none; }
+
+/* Menu button: three lines in a white pill with a black ring (same as the logo pill, readable on every picture). It turns into a cross when the menu is open. */
+#menuButton { width: 48px; padding: 0; background: #ffffff; color: #000000; box-shadow: 0 0 0 2px #000000; }
 #menuButton:hover, .bar.open #menuButton { background: var(--red); color: #ffffff; }
+.burger { position: relative; display: block; width: 20px; height: 14px; }
+.burger i { position: absolute; left: 0; width: 100%; height: 2.5px; border-radius: 2px; background: currentColor; transition: transform .25s ease, opacity .2s ease, top .25s ease; }
+.burger i:nth-child(1) { top: 0; }
+.burger i:nth-child(2) { top: 5.75px; }
+.burger i:nth-child(3) { top: 11.5px; }
+.bar.open .burger i:nth-child(1) { top: 5.75px; transform: rotate(45deg); }
+.bar.open .burger i:nth-child(2) { opacity: 0; }
+.bar.open .burger i:nth-child(3) { top: 5.75px; transform: rotate(-45deg); }
 
 /* Light / dark slider: the sun sits on the left in light mode, the moon slides to the right in dark mode */
 .bar .theme-toggle { position: relative; width: 64px; height: 34px; min-height: 34px; padding: 0; background: var(--toggle-track); transition: background-color .3s; }
@@ -260,18 +271,32 @@ section { padding: clamp(52px, 8vw, 100px) var(--gutter); scroll-margin-top: 80p
 .theme-toggle[aria-checked="true"] .icon-sun { opacity: 0; transform: rotate(50deg) scale(.5); }
 .theme-toggle[aria-checked="true"] .icon-moon { opacity: 1; transform: none; }
 
-/* The pill of links */
-.nv { pointer-events: auto; background: var(--surface-2); border-radius: 999px; padding: 5px; }
-.nv ol { list-style: none; margin: 0; padding: 0; display: flex; gap: 2px; }
+/* The menu panel: opens under the three lines on the left, in the colours of the current theme.
+   js/nav.js closes it 2 seconds after the pointer leaves it. */
+.nv {
+  position: absolute; top: calc(100% + 10px); left: 0; width: min(320px, calc(100vw - 2 * var(--gutter)));
+  pointer-events: auto; padding: 10px; border-radius: 26px;
+  background: var(--surface-2); color: var(--fg);
+  border: 2px solid var(--edge);
+  box-shadow: 8px 8px 0 var(--edge-shadow);
+  opacity: 0; visibility: hidden; transform: translateY(-8px) scale(.98); transform-origin: top left;
+  transition: opacity .2s, transform .2s, visibility 0s .2s;
+}
+.bar.open .nv { opacity: 1; visibility: visible; transform: none; transition: opacity .2s, transform .2s, visibility 0s; }
+.nv ol { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 2px; }
 .bar .nv a.nl {
+  justify-content: flex-start; gap: 14px; width: 100%;
+  min-height: 46px; padding: 0 16px; border-radius: 16px;
   background: none; color: var(--fg); box-shadow: none;
-  min-height: 42px; padding: 0 18px;
-  font: 800 .9rem var(--font-en);
+  font: 800 1.05rem var(--font-en);
   transition: background .2s, color .2s;
 }
-.bar .nv a.nl i { display: none; }
+.bar .nv a.nl i { display: inline-block; min-width: 1.3em; font-size: 1rem; font-style: normal; color: var(--accent); transition: color .2s; }
 .bar .nv a.nl:hover, .bar .nv a.nl:focus-visible { background: var(--btn-solid); color: var(--btn-solid-text); }
+.bar .nv a.nl:hover i, .bar .nv a.nl:focus-visible i { color: inherit; }
 .bar .nv a.nl[aria-current="true"] { background: var(--red); color: #ffffff; }
+.bar .nv a.nl[aria-current="true"] i { color: #ffffff; }
+.nv .nv-account { margin-top: 6px; padding-top: 8px; border-top: 2px solid var(--edge); }
 
 
 /* ---------- 4. Hero (no planets for now; the open space is on purpose) ---------- */
@@ -573,7 +598,9 @@ h1 em    { display: block; font: italic 700 clamp(1.6rem, 4.4vw, 3.2rem)/1.15 va
 .mail:hover { color: var(--cream); }
 footer { padding: 50px var(--gutter) 28px; background: var(--band-red); color: var(--band-red-text); overflow: hidden; }
 .footer-mark { font: 900 clamp(3rem, 20vw, 17rem)/.85 var(--font-en); white-space: nowrap; }
-.footer-row { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 10px; margin-top: 20px; font-size: 1.05rem; }
+.fine a { color: var(--accent); font-weight: 700; text-decoration: underline; text-underline-offset: 3px; }
+.slot { scroll-margin-top: 90px; }   /* the request form lands a little below the top of the screen when it opens */
+.footer-row { position: relative; z-index: 1; display: flex; flex-wrap: wrap; justify-content: space-between; gap: 10px; margin-top: 20px; font-size: 1.05rem; }
 
 
 /* ---------- 9. Sign-in box and blog ---------- */
@@ -607,13 +634,14 @@ dialog h2 { margin: 0 0 6px; font: 900 2rem var(--font-en); }
 /* Preview-mode notice */
 .preview-banner { position: fixed; z-index: 75; right: 12px; bottom: calc(env(safe-area-inset-bottom, 0px) + 12px); max-width: min(92vw, 300px); pointer-events: none; padding: 10px 14px; border-radius: 16px; background: var(--ink); color: var(--pop); font: 700 .85rem/1.35 var(--font-en); }
 
-/* Hidden views: #blog, #admin, #dashboard replace the home page while open */
+/* Hidden views: #blog, #admin, #dashboard, #account, #my-requests replace the home page while open */
 .view { display: none; min-height: 100svh; padding: 70px 0 clamp(52px, 8vw, 100px); background: var(--surface-2); color: var(--fg); }   /* full width: the .page inside adds the side padding */
-body.view-blog #blogView, body.view-admin #adminView, body.view-dashboard #dashboardView, body.view-mine #mineView, body.view-privacy #privacyView, body.view-terms #termsView { display: block; }
+body.view-blog #blogView, body.view-admin #adminView, body.view-dashboard #dashboardView, body.view-mine #mineView, body.view-account #accountView, body.view-privacy #privacyView, body.view-terms #termsView { display: block; }
 body.view-blog main > *:not(#blogView),
 body.view-admin main > *:not(#adminView),
 body.view-dashboard main > *:not(#dashboardView),
 body.view-mine main > *:not(#mineView),
+body.view-account main > *:not(#accountView),
 body.view-privacy main > *:not(#privacyView),
 body.view-terms main > *:not(#termsView) { display: none; }
 
@@ -725,25 +753,71 @@ body.view-terms main > *:not(#termsView) { display: none; }
 .status-note { margin: 0 0 6px; font-weight: 700; }
 
 
-/* ---------- 11. Small screens and reduced motion ---------- */
+/* My account (v14): two tabs, My details and My requests, at the top of both pages */
+.subtabs { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 22px; }
+.subtabs a { padding: 9px 20px; border: 3px solid var(--edge); border-radius: 999px; color: var(--fg); font: 800 .9rem var(--font-en); text-decoration: none; }
+.subtabs a:hover, .subtabs a[aria-current="page"] { background: var(--btn-solid); border-color: var(--btn-solid); color: var(--btn-solid-text); }
 
-/* Wide menu becomes a dropdown on narrower screens */
-@media (max-width: 1280px) {
-  #menuButton { display: inline-flex; }
-  .nv {
-    position: absolute; top: calc(100% + 10px); right: 0; width: min(340px, 100%);
-    padding: 10px; border-radius: 28px; background: var(--band-ink);
-    box-shadow: 0 20px 50px rgba(0, 0, 0, .45);
-    opacity: 0; visibility: hidden; transform: translateY(-8px) scale(.98); transform-origin: top right;
-    transition: opacity .2s, transform .2s, visibility 0s .2s;
-  }
-  .bar.open .nv { opacity: 1; visibility: visible; transform: none; transition: opacity .2s, transform .2s, visibility 0s; }
-  .nv ol { flex-direction: column; gap: 0; }
-  .bar .nv a.nl { justify-content: flex-start; gap: 14px; min-height: 58px; padding: 0 18px; border-radius: 18px; font: 900 1.5rem var(--font-en); color: var(--cream); }
-  .bar .nv a.nl i { display: inline; min-width: 1.1em; font-size: 1rem; color: var(--red); }
-  .bar .nv a.nl:hover, .bar .nv a.nl:focus-visible { background: var(--red); color: #ffffff; }
-  .bar .nv a.nl:hover i, .bar .nv a.nl:focus-visible i, .bar .nv a.nl[aria-current="true"] i { color: #ffffff; }
-}
+/* My details page (v14): the optional saved details */
+.account-form { max-width: 560px; }
+.account-email { margin: 0 0 4px; opacity: .8; overflow-wrap: anywhere; }
+.account-form .form-actions { margin-top: 14px; }
+.account-form .booking-message { min-height: 1.4em; }
+#accountSignedOut { margin-top: 22px; }
+#accountSignedOut .btn { margin: 10px 0 0; }
+.section-title { display: flex; align-items: baseline; gap: 12px; margin: 40px 0 0; }
+.section-title h2 { margin: 0; }
+.section-title span { font-weight: 700; opacity: .6; }
+
+/* Small buttons and the little label pills */
+.btn.small { margin: 0; padding: 10px 18px; font-size: .9rem; }
+.btn.danger { background: none; border: 3px solid var(--edge); color: var(--fg); }
+.btn.danger:hover { background: var(--red); border-color: var(--red); color: #fff; }
+.pill { display: inline-block; padding: 4px 12px; border-radius: 999px; background: var(--btn-solid); color: var(--btn-solid-text); font: 800 .8rem var(--font-en); }
+.pill.draft { background: none; border: 2px solid var(--edge); color: var(--fg); }
+.form-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 16px; margin-top: 8px; }
+.form-actions .btn { margin: 0; }
+
+/* Your posts */
+.post-row { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 12px; padding: 14px 0; border-top: 2px solid var(--faint-line); }
+.post-row-title { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; font-weight: 800; }
+.post-row-buttons { display: flex; gap: 10px; }
+
+/* Booking requests */
+.request-head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 10px; }
+.request-when { margin: 6px 0 14px; font-weight: 700; opacity: .75; }
+.request-details { display: grid; grid-template-columns: 6.5em 1fr; gap: 8px 14px; margin: 0 0 18px; padding-top: 14px; border-top: 2px solid var(--faint-line); }
+.request-details dt { font-weight: 800; opacity: .6; }
+.request-details dd { margin: 0; overflow-wrap: anywhere; }
+.request-actions { display: flex; flex-wrap: wrap; gap: 10px; }
+.request-actions .btn { margin: 0; }
+
+/* Booking status (v8). Same four colours on the Dashboard buttons, the client's pill and the progress steps.
+   Not seen = outline, Seen = black, Scheduled = red, Done = pure yellow (the owner's yellow). */
+.status-set { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; margin: 0 0 14px; }
+.status-label { font-weight: 800; opacity: .6; }
+.status-options { display: flex; flex-wrap: wrap; gap: 8px; }
+.status-opt { padding: 8px 16px; border: 2.5px solid var(--edge); border-radius: 999px; background: none; color: var(--fg); font: 800 .9rem var(--font-en); cursor: pointer; transition: background .15s, color .15s; }
+.status-opt:hover { background: var(--faint-line); }
+.status-opt:disabled { cursor: wait; opacity: .7; }
+.status-opt.on.status-not_seen, .status-pill.status-not_seen { background: none; color: var(--fg); box-shadow: inset 0 0 0 2.5px var(--edge); }
+.status-opt.on.status-not_seen { background: var(--faint-line); }
+.status-opt.on.status-seen,    .status-pill.status-seen    { background: var(--btn-solid); border-color: var(--btn-solid); color: var(--btn-solid-text); }
+.status-opt.on.status-scheduled, .status-pill.status-scheduled { background: var(--red); border-color: var(--red); color: #ffffff; }
+.status-opt.on.status-done,    .status-pill.status-done    { background: #ffff00; border-color: var(--edge); color: #000000; }
+.status-opt.on.status-done { box-shadow: 0 0 0 1px #000000; }
+.status-problem { flex-basis: 100%; margin: 0; font-weight: 700; color: var(--accent); }
+
+/* What the client sees on My requests */
+.status-pill { display: inline-block; padding: 6px 16px; border: 2.5px solid transparent; border-radius: 999px; font: 800 .9rem var(--font-en); }
+.status-steps { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin: 16px 0 12px; padding: 0; list-style: none; }
+.status-steps li { padding-top: 12px; border-top: 6px solid var(--faint-line); font-weight: 700; font-size: .85rem; opacity: .55; }
+.status-steps li.reached { border-top-color: var(--red); opacity: 1; }
+.status-steps li[aria-current="step"] { font-weight: 900; }
+.status-note { margin: 0 0 6px; font-weight: 700; }
+
+
+/* ---------- 11. Small screens and reduced motion ---------- */
 
 @media (max-width: 1000px) { .cards { grid-template-columns: 1fr; } }
 
@@ -760,8 +834,11 @@ body.view-terms main > *:not(#termsView) { display: none; }
 
 @media (max-width: 520px) {
   .bar .b .long-label { display: none; }
-  .bar-end { gap: 6px; }
+  .bar-end, .bar-start { gap: 6px; }
   .bar a, .bar button { padding: 0 14px; }
+  .bar .brand { padding: 0 16px; }
+  .bar .brand img { height: 28px; }
+  #menuButton { width: 48px; padding: 0; }
   .bar .theme-toggle { width: 56px; padding: 0; }
   .theme-toggle[aria-checked="true"] .theme-knob { transform: translateX(22px); }
 }
@@ -869,3 +946,20 @@ body.view-terms main > *:not(#termsView) { display: none; }
 .faq-answer { padding: 0 20px 18px; }
 .faq-answer p + p { margin-top: 12px; }
 .faq-answer a { color: var(--accent); font-weight: 800; text-underline-offset: 3px; }
+
+/* FAQ page (faq.html): the questions live on their own page, opened from the menu. */
+.faq-page { padding-top: clamp(110px, 14vw, 150px); min-height: 100svh; }
+.faq-page .h2 { font-size: clamp(2.2rem, 6vw, 4rem); }
+.faq-jump { display: flex; flex-wrap: wrap; gap: 10px; max-width: 860px; margin-top: 26px; }
+.faq-jump a { display: inline-flex; align-items: center; min-height: 40px; padding: 0 16px; border: 2px solid var(--edge); border-radius: 999px; background: var(--surface-2); color: var(--fg); font: 800 .9rem var(--font-en); text-decoration: none; transition: background .2s, color .2s; }
+.faq-jump a:hover, .faq-jump a:focus-visible { background: var(--btn-solid); color: var(--btn-solid-text); }
+.faq-group { scroll-margin-top: 90px; }
+.faq-more { max-width: 860px; margin-top: 54px; padding: 28px clamp(20px, 4vw, 36px); border: 3px solid var(--edge); border-radius: 26px; background: var(--surface-2); box-shadow: 6px 6px 0 var(--edge-shadow); }
+.faq-more h2 { font: 900 1.6rem var(--font-en); }
+.faq-more p { margin-top: 8px; }
+.faq-more .actions { margin-top: 20px; }
+.faq-more .btn { background: var(--btn-solid); color: var(--btn-solid-text); }
+.faq-more .btn.outline { background: none; border-color: var(--fg); color: var(--fg); }
+.faq-more .btn:hover { background: var(--red); border-color: var(--red); color: #ffffff; }
+/* The white background runs edge to edge. The content column (1000px wide) is centred with side padding, not by narrowing the section (v22 fix: it used to leave black strips on both sides). */
+.faq-page { padding-left: max(var(--gutter), calc((100% - 1000px) / 2)); padding-right: max(var(--gutter), calc((100% - 1000px) / 2)); }

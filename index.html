@@ -29,22 +29,25 @@
 
   <!-- ===================== Top bar ===================== -->
   <div class="bar">
-    <a href="#top" class="brand" aria-label="Sufiology, back to top"><img src="img/sufiology-logo.png" alt="Sufiology" width="275" height="99"></a>
-    <nav id="menu" class="nv" aria-label="Main">
-      <ol>
-        <!-- Order matches the page from top to bottom (v8). js/app.js renumbers the visible items. -->
+    <div class="bar-start">
+      <button id="menuButton" type="button" aria-expanded="false" aria-controls="menu" aria-label="Open menu"><span class="burger" aria-hidden="true"><i></i><i></i><i></i></span></button>
+      <a href="#top" class="brand" aria-label="Sufiology, back to top"><img src="img/sufiology-logo.png" alt="Sufiology" width="275" height="99"></a>
+      <nav id="menu" class="nv" aria-label="Main">
+        <ol>
         <li><a class="nl" href="#top"><i class="hi" aria-hidden="true">१</i>Home</a></li>
         <li><a class="nl" href="#services"><i class="hi" aria-hidden="true">२</i>Services</a></li>
         <li><a class="nl" href="#blog"><i class="hi" aria-hidden="true">३</i>Notes</a></li>
         <li><a class="nl" href="#channel"><i class="hi" aria-hidden="true">४</i>Socials</a></li>
         <li><a class="nl" href="#about"><i class="hi" aria-hidden="true">५</i>About</a></li>
-        <li><a class="nl" href="#contact"><i class="hi" aria-hidden="true">६</i>Contact</a></li>
-        <li id="navMine" hidden><a class="nl" href="#my-requests"><i class="hi" aria-hidden="true">७</i>My requests</a></li>
-        <li id="navWrite" hidden><a class="nl" href="#admin"><i class="hi" aria-hidden="true">८</i>Write</a></li>
-        <li id="navDashboard" hidden><a class="nl" href="#dashboard"><i class="hi" aria-hidden="true">९</i>Dashboard</a></li>
-        <li><a class="nl" href="#" id="authLink"><i class="hi" aria-hidden="true">१०</i><span id="authText">Sign in</span></a></li>
-      </ol>
-    </nav>
+        <li><a class="nl" href="faq.html"><i class="hi" aria-hidden="true">६</i>FAQ</a></li>
+        <li><a class="nl" href="#contact"><i class="hi" aria-hidden="true">७</i>Contact</a></li>
+        <li id="navMine" hidden><a class="nl" href="#account"><i class="hi" aria-hidden="true">८</i>My account</a></li>
+        <li id="navWrite" hidden><a class="nl" href="#admin"><i class="hi" aria-hidden="true">९</i>Write</a></li>
+        <li id="navDashboard" hidden><a class="nl" href="#dashboard"><i class="hi" aria-hidden="true">१०</i>Dashboard</a></li>
+        <li class="nv-account"><a class="nl" href="#" id="authLink"><i class="hi" aria-hidden="true">११</i><span id="authText">Sign in</span></a></li>
+        </ol>
+      </nav>
+    </div>
     <div class="bar-end">
       <button id="themeToggle" class="theme-toggle" role="switch" aria-checked="false" aria-label="Dark mode">
         <span class="theme-knob" aria-hidden="true">
@@ -52,7 +55,6 @@
           <svg class="icon-moon" viewBox="0 0 24 24"><path d="M20 14.5A8.5 8.5 0 0 1 9.5 4a8.5 8.5 0 1 0 10.5 10.5z"/></svg>
         </span>
       </button>
-      <button id="menuButton" aria-expanded="false" aria-controls="menu">Menu</button>
       <a class="b" href="#booking">Book<span class="long-label"> a consultation</span></a>
     </div>
   </div>
@@ -230,106 +232,6 @@
 
     <div class="marquee marquee-dark" aria-hidden="true"><div id="marqueeWords"></div></div>
 
-    <!-- ===================== FAQ (v17): answers written by the owner, see the delivery v17 note in HANDOFF.md. Plain <details> boxes, no script. ===================== -->
-    <section class="faq" id="faq">
-      <h2 class="h2">Your questions, answered.</h2>
-      <p class="lead">Short, honest answers to what people ask us most before booking.</p>
-
-      <div class="faq-list">
-        <h3 class="faq-group">About the session</h3>
-        <details>
-          <summary>What do I need to share with you before a session?</summary>
-          <div class="faq-answer"><p>Your date, time and place of birth, and your concern. Please describe your concern in detail and honestly. People spend their hard-earned money on these sessions, and we want to give you the guidance you deserve, within our limits.</p></div>
-        </details>
-        <details>
-          <summary>What if I do not know my exact birth time?</summary>
-          <div class="faq-answer"><p>We do not offer Birth Time Rectification (BTR) at the moment, so it is best for everyone if you give us your exact time of birth.</p></div>
-        </details>
-        <details>
-          <summary>Which session should I choose: Dwapara, Treta or Satya?</summary>
-          <div class="faq-answer">
-            <p><b>Dwapara</b> (20 minutes, ₹2,000) suits you if you want to understand a particular problem, the time you are going through, and what to avoid in the near future.</p>
-            <p><b>Treta</b> (30 minutes, ₹3,200) is for an in-depth analysis of your chart, without the pending karma reading, with the best timings for your concerns and future predictions.</p>
-            <p><b>Satya</b> (45 minutes, ₹6,000) covers the pending karma reading together with the in-depth analysis of your chart.</p>
-          </div>
-        </details>
-        <details>
-          <summary>What is the pending karma reading in Satya?</summary>
-          <div class="faq-answer"><p>We point out the karmas carried by your ancestors or by you, and give particular remedies for them. Your whole chart is discussed in detail, with every planet and combination.</p></div>
-        </details>
-        <details>
-          <summary>How is the session held?</summary>
-          <div class="faq-answer"><p>Sessions are held on Google Meet, and we send the invite by email. Sessions are not recorded.</p></div>
-        </details>
-        <details>
-          <summary>What language do you consult in?</summary>
-          <div class="faq-answer"><p>English and Hindi.</p></div>
-        </details>
-        <details>
-          <summary>Do you give remedies?</summary>
-          <div class="faq-answer"><p>Yes. Remedies are given in every session plan, whenever your chart calls for them.</p></div>
-        </details>
-
-        <h3 class="faq-group">Booking and payment</h3>
-        <details>
-          <summary>How do I book?</summary>
-          <div class="faq-answer"><p>Create an account, choose a session, and send your request with your preferred date and time. We confirm by email or WhatsApp. <a href="#booking">Go to the booking form.</a></p></div>
-        </details>
-        <details>
-          <summary>How long until I get a reply?</summary>
-          <div class="faq-answer"><p>Within 24 hours of your request.</p></div>
-        </details>
-        <details>
-          <summary>How and when do I pay?</summary>
-          <div class="faq-answer"><p>Once your slot is confirmed, you pay by UPI before the session. We send you the UPI details.</p></div>
-        </details>
-        <details>
-          <summary>Can I pay from outside India?</summary>
-          <div class="faq-answer"><p>Yes, you can pay through PayPal.</p></div>
-        </details>
-        <details>
-          <summary>Can I reschedule?</summary>
-          <div class="faq-answer"><p>Yes, you can reschedule. If we cannot hold the session at the agreed time, we reschedule it.</p></div>
-        </details>
-        <details>
-          <summary>Do you give refunds?</summary>
-          <div class="faq-answer"><p>We give a refund when we find that we are not meant to check your chart, which we only know after we analyse it. Otherwise we do not give refunds.</p></div>
-        </details>
-        <details>
-          <summary>What if I am late or miss the session?</summary>
-          <div class="faq-answer"><p>You can reschedule.</p></div>
-        </details>
-        <details>
-          <summary>Can I book for someone else (a parent, a child, a partner)?</summary>
-          <div class="faq-answer"><p>Yes. We prefer that the person is present at the session. If you are booking for a close family member, it is fine if they are not present. Please give that person&rsquo;s birth details in the form.</p></div>
-        </details>
-
-        <h3 class="faq-group">Privacy and trust</h3>
-        <details>
-          <summary>Is my information kept private?</summary>
-          <div class="faq-answer"><p>Yes. Your birth details and message are used only to prepare and hold your session. Only the Sufiology team can see your details. No one outside the team can see them, and they are never sold. <a href="#privacy">Read the Privacy notice.</a></p></div>
-        </details>
-        <details>
-          <summary>Can I ask you to delete my information?</summary>
-          <div class="faq-answer"><p>Yes. Message us on <a href="https://wa.me/917009626556" target="_blank" rel="noopener">WhatsApp</a> or email <a href="mailto:sufiology8@gmail.com">sufiology8@gmail.com</a> and we will delete it.</p></div>
-        </details>
-
-        <h3 class="faq-group">After your session</h3>
-        <details>
-          <summary>Can I ask follow-up questions after the session?</summary>
-          <div class="faq-answer"><p>Yes. If we think your question needs a full session, we will ask you to book a new one.</p></div>
-        </details>
-        <details>
-          <summary>Can I get a written summary or a recording?</summary>
-          <div class="faq-answer"><p>Not at the moment. Sessions are not recorded, so we suggest you write down the important points as we discuss them.</p></div>
-        </details>
-        <details>
-          <summary>How do I contact you if I have a problem?</summary>
-          <div class="faq-answer"><p>Message us on <a href="https://wa.me/917009626556" target="_blank" rel="noopener">WhatsApp</a>. Calls are not taken.</p></div>
-        </details>
-      </div>
-    </section>
-
     <!-- ===================== Booking ===================== -->
     <section class="booking" id="booking">
       <h2 class="h2">Book a consultation.</h2>
@@ -349,6 +251,7 @@
 
       <form id="bookingForm" class="slot" hidden>
         <h3>Request your session</h3>
+        <p class="fine" id="accountNote"></p>
 
         <label class="fld">Your name
           <input id="fName" required autocomplete="name" maxlength="120">
@@ -397,7 +300,7 @@
       <h2 class="h2">Questions before you book?</h2>
       <p class="lead">For One2One consultation details, message Nishaad Sharma on WhatsApp. Calls are not taken.</p>
       <a class="mail" href="mailto:sufiology8@gmail.com">sufiology8@gmail.com</a>
-      <a class="btn" href="#faq">Read the FAQ</a>
+      <a class="btn" href="faq.html">Read the FAQ</a>
       <a class="btn" href="https://wa.me/917009626556?text=Hello%2C%20I%20would%20like%20to%20know%20more%20about%20a%20consultation." target="_blank" rel="noopener">Message on WhatsApp</a>
       <a class="btn" href="https://www.instagram.com/sufiologyy/" target="_blank" rel="noopener">Instagram @sufiologyy</a>
       <a class="btn" href="https://chat.whatsapp.com/LPbxJmQD6dOBwZtDQI1Rzj" target="_blank" rel="noopener">WhatsApp Community</a>
@@ -418,7 +321,43 @@
       <div class="page wide"><div id="blogList"></div></div>
     </section>
     <section class="view" id="adminView"><div class="page"><h1 class="h2">Write.</h1><p class="page-intro">Write, edit and publish notes.</p><div id="adminBody"></div></div></section>
-    <section class="view" id="mineView"><div class="page"><h1 class="h2">My requests.</h1><p class="page-intro">Your booking requests and where each one stands. Nishaad Sharma updates the status.</p><div id="mineBody"></div></div></section>
+    <section class="view" id="mineView"><div class="page"><nav class="subtabs" aria-label="My account"><a href="#account">My details</a><a href="#my-requests">My requests</a></nav><h1 class="h2">My requests.</h1><p class="page-intro">Your booking requests and where each one stands. Nishaad Sharma updates the status.</p><div id="mineBody"></div></div></section>
+    <section class="view" id="accountView"><div class="page">
+      <nav class="subtabs" aria-label="My account"><a href="#account">My details</a><a href="#my-requests">My requests</a></nav>
+      <h1 class="h2">My details.</h1>
+      <p class="page-intro">Save your details once and the booking form fills itself in. Everything here is optional. In the booking form you can still change anything, for example when you book for someone else.</p>
+      <div id="accountBody">
+        <p id="accountSignedOut" hidden>Sign in to save your details.</p>
+        <form id="accountForm" class="panel account-form" hidden>
+          <p class="account-email">Signed in as <b id="accountEmail"></b></p>
+          <label class="fld">Your name
+            <input id="aName" autocomplete="name" maxlength="120">
+          </label>
+          <label class="fld">WhatsApp number
+            <div class="phone">
+              <select id="aCountry" aria-label="Country code"></select>
+              <input id="aPhone" type="tel" inputmode="numeric" autocomplete="tel-national" placeholder="10 digits">
+            </div>
+          </label>
+          <label class="fld">Date of birth
+            <input id="aBirthDate" type="date">
+          </label>
+          <label class="fld">Time of birth
+            <input id="aBirthTime" type="time">
+          </label>
+          <label class="fld">Place of birth
+            <input id="aBirthPlace" maxlength="120" placeholder="City, state, country">
+          </label>
+          <p class="fine">Only you can see these details here. The Sufiology team receives them only when you send a booking request. You can change or remove them whenever you like.</p>
+          <label class="consent"><input id="aConsent" type="checkbox" required><span>I agree that Sufiology may keep these details in my account to fill in my booking form. I have read the <a href="#privacy">Privacy notice</a>.</span></label>
+          <div class="form-actions">
+            <button class="btn" type="submit">Save my details</button>
+            <button class="btn danger" type="button" id="accountRemove">Remove saved details</button>
+          </div>
+          <p class="booking-message" id="accountMessage" role="status"></p>
+        </form>
+      </div>
+    </div></section>
     <section class="view" id="dashboardView"><div class="page"><h1 class="h2">Dashboard.</h1><p class="page-intro">Booking requests from clients. Set the status of each one, and reply by email or WhatsApp to confirm.</p><div id="dashboardBody"></div></div></section>
     <section class="view legal" id="privacyView"><div class="page">
       <h1 class="h2">Privacy notice.</h1>
@@ -455,6 +394,12 @@
       </ul>
       <p><b>Why:</b> to prepare your reading, confirm your slot, contact you and hold your session.</p>
 
+      <h3>If you save details in My account (optional)</h3>
+      <ul>
+        <li>Your name, WhatsApp number (with country code), and your date, time and place of birth. You can fill in some, all or none of them.</li>
+      </ul>
+      <p><b>Why:</b> only to fill in your booking form for you. You can still change anything in the form, for example when you book for someone else. These saved details are visible only to you when you are signed in. They reach us only if you send a booking request.</p>
+
       <h3>To keep the website safe</h3>
       <ul>
         <li>A random ID stored in your browser. It is saved with your booking request so we can apply the weekly limit. It holds no personal details and is never used for tracking or advertising.</li>
@@ -490,6 +435,7 @@
       <h2>5. How long we keep your information</h2>
       <ul>
         <li><b>Booking requests</b> (including the message you wrote) are deleted 12 months after the request.</li>
+        <li><b>Details saved in My account</b> are kept until you change or remove them on the My account page, or delete your account. Removing them does not affect booking requests you already sent.</li>
         <li><b>Accounts</b> are kept until you ask us to delete them. We may also delete an account that has not been used for 2 years.</li>
         <li><b>Email and WhatsApp conversations</b> stay in those apps. If you ask, we will delete them from our side.</li>
       </ul>
@@ -627,6 +573,7 @@
     <div class="footer-row"><p>© 2026 Sufiology. Private astrology consultations.</p><p class="footer-legal"><a href="#privacy">Privacy</a> · <a href="#terms">Terms</a></p><a href="#top">Back to top</a></div>
   </footer>
 
+  <script src="js/nav.js"></script>
   <script src="js/config.js"></script>
   <script src="js/data.js"></script>
   <script src="js/panchang.js"></script>

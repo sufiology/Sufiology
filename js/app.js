@@ -25,6 +25,9 @@
   let currentUser = null;            // null when signed out, otherwise { email, admin }
   let chosenTier = "dwapara";
   let sentMessage = "";              // shown after a request has been sent
+  let bookingOpen = false;           // the request form shows only after the client clicks "Book a consultation" (v14)
+  let savedDetails = null;           // the client's optional My account details (null when nothing is saved)
+  let accountDirty = false;          // true while the My account form has unsaved typing, so it is not overwritten
   let signInMode = "in";             // "in" or "up" (create account)
 
 
@@ -279,17 +282,28 @@
   function refreshAll() {
     return backend.getUser().catch(() => null).then((user) => {
       currentUser = user;
+      if (!user) savedDetails = null;
       byId("authText").textContent = user ? "Sign out" : "Sign in";
-      byId("navMine").hidden = !user || user.admin;      // clients only: the admin has the Dashboard (and the top bar is already full)
+      byId("navMine").hidden = !user || user.admin;      // "My account" (My details and My requests): clients only. The admin has the Dashboard, and the top bar is already full.
       byId("navWrite").hidden = !(user && user.admin);
       byId("navDashboard").hidden = !(user && user.admin);
-      renderBooking();
-      renderBlog();
-      renderAdmin();
-      renderDashboard();
-      renderMine();
-      numberMenu();
+      return loadSavedDetails().then(() => {
+        renderBooking();
+        renderBlog();
+        renderAdmin();
+        renderDashboard();
+        renderMine();
+        renderAccount();
+        numberMenu();
+      });
     });
+  }
+
+  /* Reads the client's saved My account details (a client only; nothing for the admin or a signed-out visitor). */
+  function loadSavedDetails() {
+    if (!currentUser || currentUser.admin) { savedDetails = null; return Promise.resolve(); }
+    return backend.getAccountDetails().then((details) => { savedDetails = details; })
+      .catch(() => { savedDetails = null; });   // the booking form simply stays empty if this cannot be read
   }
 
   /* The little Hindi number in front of each menu item counts only the items that are showing, so there are no gaps. */
@@ -305,7 +319,7 @@
 
   byId("authLink").addEventListener("click", (event) => {
     event.preventDefault();
-    if (currentUser) backend.signOut().then(refreshAll);
+    if (currentUser) { bookingOpen = false; savedDetails = null; accountDirty = false; clearPersonalForms(); backend.signOut().then(refreshAll); }
     else openSignInBox("in");
   });
 
@@ -333,7 +347,10 @@
     wrap.querySelectorAll("input").forEach((radio) => { radio.checked = radio.value === chosenTier; });
   }
 
-  /* Shows either the sign-in prompt or the request form, depending on whether you are signed in. */
+  /* Shows the sign-in prompt, the "Book a consultation" button, the request form, or the confirmation.
+     The form itself opens only after the client clicks a "Book a consultation" button (v14). */
+  let formWasShowing = false;        // used to fill the form from My account once each time it opens
+
   function renderBooking() {
     renderTierChoices();
     const actions = byId("bookingActions");
@@ -344,62 +361,130 @@
 
     if (!currentUser) {
       bookingForm.hidden = true;
+      formWasShowing = false;
       message.textContent = "You don’t need an account to browse the site or read the notes. An account is only needed to send a booking request.";
-      actions.append(makeButton("Create an account to book", () => openSignInBox("up")),
-                     makeButton("Sign in", () => openSignInBox("in")));
+      actions.append(makeButton("Create an account to book", () => { bookingOpen = true; openSignInBox("up"); }),
+                     makeButton("Sign in", () => { bookingOpen = true; openSignInBox("in"); }));
       return;
     }
 
     // Right after sending: hide the form and show only the confirmation
     if (sentMessage) {
       bookingForm.hidden = true;
+      formWasShowing = false;
       message.textContent = sentMessage;
       message.classList.add("sent");
       actions.append(makeLink("#my-requests", "See your request status"),
-                     makeButton("Send another request", () => { sentMessage = ""; renderBooking(); }));
+                     makeButton("Send another request", () => { sentMessage = ""; bookingOpen = true; renderBooking(); }));
+      return;
+    }
+
+    // Signed in, but the client has not asked to book yet: a choice of session and one button
+    if (!bookingOpen) {
+      bookingForm.hidden = true;
+      formWasShowing = false;
+      message.textContent = "Choose a session above, then press the button to open the request form.";
+      actions.append(makeButton("Book a consultation", () => { bookingOpen = true; renderBooking(); showBookingForm(); }));
       return;
     }
 
     bookingForm.hidden = false;
     if (!byId("fEmail").value) byId("fEmail").value = currentUser.email;
+    if (!formWasShowing) prefillBookingForm();      // only on the moment it opens, so nothing the client typed is ever replaced
+    formWasShowing = true;
+    showAccountNote();
     message.textContent = `Booking the ${tierName(chosenTier)} session. Fill in the form below.`;
   }
 
-  /* ----- Phone number: the digit count depends on the country ----- */
-  function currentCountry() {
-    return countries.find((c) => c.code === countrySelect.value) || countries[0];
-  }
-  function validatePhone() {
-    const c = currentCountry();
-    const digits = phoneInput.value;
-    let problem = "";
-    if (digits.length < c.min || digits.length > c.max) {
-      problem = "Enter " + (c.min === c.max ? "exactly " + c.max : c.min + " to " + c.max) + " digits, without the country code.";
-    } else if (c.code === "+91" && !/^[6-9]/.test(digits)) {
-      problem = "Indian mobile numbers start with 6, 7, 8 or 9.";
-    }
-    phoneInput.setCustomValidity(problem);
-  }
-  function applyCountry() {
-    const c = currentCountry();
-    phoneInput.maxLength = c.max;
-    phoneInput.placeholder = c.min === c.max ? c.max + " digits" : c.min + " to " + c.max + " digits";
-    phoneInput.value = digitsOnly(phoneInput.value).slice(0, c.max);
-    validatePhone();
+  /* Brings the request form into view after it opens. */
+  function showBookingForm() {
+    setTimeout(() => bookingForm.scrollIntoView({ behavior: "smooth", block: "start" }), 120);
   }
 
-  function setUpBookingForm() {
-    // Country dropdown
+  /* Puts one saved value into a form box, but only if the box is still empty.
+     An "input" event is sent so the dd/mm/yyyy and hh:mm boxes (js/datetime.js) show the value too. */
+  function fillIfEmpty(id, value) {
+    const input = byId(id);
+    if (!value || input.value) return;
+    input.value = value;
+    input.dispatchEvent(new Event("input", { bubbles: true }));
+  }
+
+  /* Fills the request form from the client's My account details. Anything can still be changed in the form
+     (for example when booking for someone else). The saved details themselves are never changed from here. */
+  function prefillBookingForm() {
+    if (!savedDetails) return;
+    fillIfEmpty("fName", savedDetails.name);
+    fillIfEmpty("fBirthDate", savedDetails.birth_date);
+    fillIfEmpty("fBirthTime", savedDetails.birth_time);
+    fillIfEmpty("fBirthPlace", savedDetails.birth_place);
+    if (savedDetails.phone_number && !phoneInput.value) {
+      countrySelect.value = savedDetails.phone_country || "+91";
+      bookingPhone.apply();
+      phoneInput.value = savedDetails.phone_number;
+      phoneInput.dispatchEvent(new Event("input", { bubbles: true }));
+    }
+  }
+
+  /* The small line at the top of the form: says whether it was filled from My account, and links there. */
+  function showAccountNote() {
+    const note = byId("accountNote");
+    const link = make("a", null, hasSavedDetails() ? "Edit my saved details" : "Open My account");
+    link.href = "#account";
+    note.textContent = "";
+    note.append(hasSavedDetails()
+      ? "Filled in from your account. Booking for someone else? Just change anything below. "
+      : "Tip: save your name, number and birth details once and this form fills itself in. ", link);
+  }
+
+  /* True when at least one My account detail is saved */
+  function hasSavedDetails() {
+    return !!savedDetails && ["name", "phone_number", "birth_date", "birth_time", "birth_place"].some((key) => savedDetails[key]);
+  }
+
+  /* ----- Phone number: the digit count depends on the country -----
+     Used by the booking form and by My account. In My account the number is optional (empty is fine). */
+  function setUpPhoneField(select, input, optional) {
     countries.forEach((c) => {
       const option = make("option", null, `${c.code} ${c.name}`);
       option.value = c.code;
-      countrySelect.appendChild(option);
+      select.appendChild(option);
     });
-    countrySelect.value = "+91";
-    countrySelect.onchange = applyCountry;
-    phoneInput.oninput = () => { phoneInput.value = digitsOnly(phoneInput.value).slice(0, phoneInput.maxLength); validatePhone(); };
-    applyCountry();
+    select.value = "+91";
 
+    function country() { return countries.find((c) => c.code === select.value) || countries[0]; }
+
+    function validate() {
+      const c = country();
+      const digits = input.value;
+      let problem = "";
+      if (optional && !digits) {
+        problem = "";
+      } else if (digits.length < c.min || digits.length > c.max) {
+        problem = "Enter " + (c.min === c.max ? "exactly " + c.max : c.min + " to " + c.max) + " digits, without the country code.";
+      } else if (c.code === "+91" && !/^[6-9]/.test(digits)) {
+        problem = "Indian mobile numbers start with 6, 7, 8 or 9.";
+      }
+      input.setCustomValidity(problem);
+    }
+
+    function apply() {
+      const c = country();
+      input.maxLength = c.max;
+      input.placeholder = c.min === c.max ? c.max + " digits" : c.min + " to " + c.max + " digits";
+      input.value = digitsOnly(input.value).slice(0, c.max);
+      validate();
+    }
+
+    select.onchange = apply;
+    input.oninput = () => { input.value = digitsOnly(input.value).slice(0, input.maxLength); validate(); };
+    apply();
+    return { apply, validate };
+  }
+
+  const bookingPhone = setUpPhoneField(countrySelect, phoneInput, false);
+
+  function setUpBookingForm() {
     // Earliest date you can pick is today
     const today = new Date();
     byId("fDate").min = today.getFullYear() + "-" + ("0" + (today.getMonth() + 1)).slice(-2) + "-" + ("0" + today.getDate()).slice(-2);
@@ -413,7 +498,7 @@
 
     bookingForm.onsubmit = (event) => {
       event.preventDefault();
-      validatePhone();
+      bookingPhone.validate();
       checkConcern();
       if (!bookingForm.reportValidity()) return;
 
@@ -442,7 +527,7 @@
                       (backend.isPreview ? " (Preview mode: no email was actually sent.)" : "");
         bookingForm.reset();
         countrySelect.value = "+91";
-        applyCountry();
+        bookingPhone.apply();
         checkConcern();
         byId("fEmail").value = currentUser.email;
         renderBooking();
@@ -454,10 +539,118 @@
   }
   if (bookingForm) setUpBookingForm();
 
-  // The "Book Dwapara / Treta / Satya" buttons on the cards choose that session
-  document.querySelectorAll("[data-tier]").forEach((button) => {
-    button.addEventListener("click", () => { chosenTier = button.getAttribute("data-tier"); sentMessage = ""; renderBooking(); });
+  /* Every "Book a consultation" link on the site (top bar, hero, the three session cards, "My requests" when empty)
+     opens the request form. The session cards also choose their session. */
+  document.addEventListener("click", (event) => {
+    const link = event.target.closest && event.target.closest('a[href="#booking"]');
+    if (!link) return;
+    const tier = link.getAttribute("data-tier");
+    if (tier) chosenTier = tier;
+    sentMessage = "";
+    bookingOpen = true;
+    renderBooking();
+    if (currentUser) showBookingForm();
   });
+
+  /* Empties the booking form and the My account form (used at sign-out, so the next person on this device sees none of it). */
+  function clearPersonalForms() {
+    bookingForm.reset();
+    countrySelect.value = "+91";
+    bookingPhone.apply();
+    fillAccountForm(null);
+  }
+
+
+  /* ---------- 4b. My account: optional saved details ----------
+     Name, WhatsApp number and birth details. Nothing here is required. The booking form is filled from them when it
+     opens (prefillBookingForm above) and can still be changed there. Stored in the client_details table
+     (supabase/migrations/008_client_details.sql), which only the signed-in owner of each row can read. */
+  const accountForm = byId("accountForm");
+  const accountPhone = setUpPhoneField(byId("aCountry"), byId("aPhone"), true);
+
+  /* Sets one My account box. The "input" event keeps the dd/mm/yyyy and hh:mm boxes (js/datetime.js) in step. */
+  function setAccountBox(id, value) {
+    const input = byId(id);
+    input.value = value || "";
+    input.dispatchEvent(new Event("input", { bubbles: true }));
+  }
+
+  /* Fills the My account form with saved details, or empties it when there are none. */
+  function fillAccountForm(details) {
+    const saved = details || {};
+    setAccountBox("aName", saved.name);
+    setAccountBox("aBirthDate", saved.birth_date);
+    setAccountBox("aBirthTime", saved.birth_time);
+    setAccountBox("aBirthPlace", saved.birth_place);
+    byId("aCountry").value = saved.phone_country || "+91";
+    accountPhone.apply();
+    setAccountBox("aPhone", saved.phone_number);
+    accountPhone.validate();
+    byId("aConsent").checked = false;
+  }
+
+  function sayAboutAccount(text) { byId("accountMessage").textContent = text; }
+
+  /* Typing in the form (a real key press or a picker choice, not the code above) protects it from being refilled. */
+  accountForm.addEventListener("input", (event) => { if (event.isTrusted) accountDirty = true; });
+
+  function renderAccount() {
+    if (!document.body.classList.contains("view-account")) return;
+    const notice = byId("accountSignedOut");
+    notice.textContent = "";
+    const isClient = !!currentUser && !currentUser.admin;
+    notice.hidden = isClient;
+    accountForm.hidden = !isClient;
+    if (!currentUser) {
+      notice.append("Sign in to save your details. ", makeButton("Sign in", () => openSignInBox("in")));
+      return;
+    }
+    if (currentUser.admin) { notice.textContent = "My account is for client accounts."; return; }
+    byId("accountEmail").textContent = currentUser.email;
+    if (!accountDirty) fillAccountForm(savedDetails);
+  }
+
+  accountForm.onsubmit = (event) => {
+    event.preventDefault();
+    accountPhone.validate();
+    if (!accountForm.reportValidity()) return;
+
+    const value = (id) => byId(id).value.trim();
+    const details = {
+      name: value("aName") || null,
+      phone_country: value("aPhone") ? byId("aCountry").value : null,
+      phone_number: value("aPhone") || null,
+      birth_date: value("aBirthDate") || null,
+      birth_time: value("aBirthTime") || null,
+      birth_place: value("aBirthPlace") || null
+    };
+    const today = new Date();
+    const todayIso = today.getFullYear() + "-" + ("0" + (today.getMonth() + 1)).slice(-2) + "-" + ("0" + today.getDate()).slice(-2);
+    if (Object.keys(details).every((key) => details[key] === null)) { sayAboutAccount("There is nothing to save yet. Fill in at least one box, or use Remove saved details."); return; }
+    if (details.birth_date && details.birth_date > todayIso) { sayAboutAccount("The date of birth cannot be in the future."); return; }
+
+    const saveButton = accountForm.querySelector("button[type=submit]");
+    saveButton.disabled = true;
+    backend.saveAccountDetails(details).then(() => {
+      savedDetails = details;
+      accountDirty = false;
+      fillAccountForm(savedDetails);
+      if (!bookingForm.hidden) { prefillBookingForm(); showAccountNote(); }   // an open form gets its empty boxes filled (typed text is never replaced)
+      sayAboutAccount("Saved. The booking form will fill itself in from these details.");
+    }).catch(() => {
+      sayAboutAccount("Could not save your details. Please try again in a moment.");
+    }).then(() => { saveButton.disabled = false; });
+  };
+
+  byId("accountRemove").onclick = () => {
+    backend.deleteAccountDetails().then(() => {
+      savedDetails = null;
+      accountDirty = false;
+      fillAccountForm(null);
+      if (!bookingForm.hidden) showAccountNote();
+      sayAboutAccount("Your saved details were removed.");
+    }).catch(() => sayAboutAccount("Could not remove your details. Please try again in a moment."));
+  };
 
 
   /* ---------- 5. Blog (public) ---------- */
@@ -887,10 +1080,10 @@
   }
 
   /* ---------- 8. Which view is showing ----------
-     Blog, Write, Dashboard, Privacy and Terms are views inside index.html (not separate pages),
+     Blog, Write, Dashboard, My requests, My account, Privacy and Terms are views inside index.html (not separate pages),
      so you stay signed in everywhere. The address ending decides which one shows. */
-  const VIEW_CLASSES = { "view-blog": /^#blog/, "view-admin": /^#admin$/, "view-dashboard": /^#dashboard$/, "view-mine": /^#my-requests$/, "view-privacy": /^#privacy$/, "view-terms": /^#terms$/ };
-  const VIEW_LINKS = ["#blog", "#admin", "#dashboard", "#my-requests"];
+  const VIEW_CLASSES = { "view-blog": /^#blog/, "view-admin": /^#admin$/, "view-dashboard": /^#dashboard$/, "view-mine": /^#my-requests$/, "view-account": /^#account$/, "view-privacy": /^#privacy$/, "view-terms": /^#terms$/ };
+  const VIEW_LINKS = ["#blog", "#admin", "#dashboard", "#my-requests", "#account"];
 
   function applyView() {
     const hash = location.hash;
@@ -902,8 +1095,12 @@
     });
     if (!/^#blog\//.test(hash)) document.title = originalTitle;
 
-    // Menu highlight for the three views (the home page sections are handled in visuals.js)
-    const currentLink = hash.replace(/^(#blog)\/.*/, "$1");
+    // Menu highlight for the views (the home page sections are handled in visuals.js).
+    // The "My account" menu item covers both of its tabs, My details (#account) and My requests (#my-requests).
+    const currentLink = hash.replace(/^(#blog)\/.*/, "$1").replace(/^#my-requests$/, "#account");
+    document.querySelectorAll(".subtabs a").forEach((tab) => {
+      if (tab.getAttribute("href") === hash) tab.setAttribute("aria-current", "page"); else tab.removeAttribute("aria-current");
+    });
     document.querySelectorAll("#menu a.nl").forEach((link) => {
       const href = link.getAttribute("href");
       if (inView && href === currentLink) link.setAttribute("aria-current", "true");
@@ -911,7 +1108,7 @@
     });
   }
 
-  function isViewOpen() { return /\bview-(blog|admin|dashboard|mine|privacy|terms)\b/.test(document.body.className); }
+  function isViewOpen() { return /\bview-(blog|admin|dashboard|mine|account|privacy|terms)\b/.test(document.body.className); }
 
   /* Where the visitor was on the home page when they opened the Terms or the Privacy notice (for example from the
      booking form), so that coming back puts them at the same spot with everything they typed still in the form. */
@@ -923,8 +1120,8 @@
     const scrollBefore = scrollY;
     applyView();
     if (!wasInView && /^#(privacy|terms)$/.test(location.hash)) legalReturnY = scrollBefore;
-    if (/^#(blog|admin|dashboard|my-requests|privacy|terms)/.test(location.hash)) scrollTo(0, 0);
-    renderBlog(); renderAdmin(); renderDashboard(); renderMine();
+    if (/^#(blog|admin|dashboard|my-requests|account|privacy|terms)/.test(location.hash)) scrollTo(0, 0);
+    renderBlog(); renderAdmin(); renderDashboard(); renderMine(); renderAccount();
 
     // Leaving the Terms or the Privacy notice by "Back to the home page" or the browser's Back button: return to the same spot
     if (wasLegal && legalReturnY !== null && (location.hash === "" || location.hash === "#top")) {
@@ -934,7 +1131,7 @@
     }
 
     // Leaving a view: go to the section that was asked for
-    if (wasInView && !/^#(blog|admin|dashboard|my-requests|privacy|terms)/.test(location.hash)) {
+    if (wasInView && !/^#(blog|admin|dashboard|my-requests|account|privacy|terms)/.test(location.hash)) {
       let target = null;
       try { target = location.hash.length > 1 && location.hash !== "#top" ? document.querySelector(location.hash) : null; } catch (e) { /* not a valid selector */ }
       if (target) target.scrollIntoView(); else scrollTo(0, 0);

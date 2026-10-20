@@ -141,6 +141,24 @@
       const store = preview.load();
       return Promise.resolve(store.bookings.filter((b) => b.email === store.signedIn).reverse());
     },
+    /* ----- saved account details (the optional My account page) ----- */
+    getAccountDetails() {
+      const store = preview.load();
+      return Promise.resolve((store.details && store.details[store.signedIn]) || null);
+    },
+    saveAccountDetails(details) {
+      const store = preview.load();
+      store.details = store.details || {};
+      store.details[store.signedIn] = Object.assign({}, details);
+      preview.save(store);
+      return Promise.resolve();
+    },
+    deleteAccountDetails() {
+      const store = preview.load();
+      if (store.details) delete store.details[store.signedIn];
+      preview.save(store);
+      return Promise.resolve();
+    },
     // Admin only: set not_seen, seen, scheduled or done
     updateBookingStatus(id, status) {
       const store = preview.load();
@@ -166,6 +184,14 @@
     const readBody = context && context.json ? context.json().catch(() => ({})) : Promise.resolve(result.data || {});
     return readBody.then((body) => {
       throw new Error(body.error || (result.error && result.error.message) || "Something went wrong.");
+    });
+  }
+
+  // The id of whoever is signed in, or null
+  function currentUserId() {
+    return supabase.auth.getSession().then((result) => {
+      const session = result.data && result.data.session;
+      return session ? session.user.id : null;
     });
   }
 
@@ -275,6 +301,36 @@
           .eq("user_id", session.user.id).order("created_at", { ascending: false })
           .then((rows) => { if (rows.error) throw rows.error; return rows.data; });
       });
+    },
+    /* ----- saved account details (the optional My account page). Needs supabase/migrations/008_client_details.sql.
+       The database lets each client read and change only their own row. ----- */
+    // Resolves with { name, phone_country, phone_number, birth_date, birth_time, birth_place } or null if nothing is saved.
+    getAccountDetails() {
+      return currentUserId().then((userId) => {
+        if (!userId) return null;
+        return supabase.from("client_details")
+          .select("name, phone_country, phone_number, birth_date, birth_time, birth_place")
+          .eq("user_id", userId).maybeSingle()
+          .then((result) => {
+            if (result.error) throw result.error;
+            if (!result.data) return null;
+            const details = result.data;
+            if (details.birth_time) details.birth_time = details.birth_time.slice(0, 5);   // "18:30:00" -> "18:30"
+            return details;
+          });
+      });
+    },
+    saveAccountDetails(details) {
+      return currentUserId().then((userId) => {
+        if (!userId) throw new Error("Please sign in again.");
+        return supabase.from("client_details").upsert(Object.assign({ user_id: userId }, details), { onConflict: "user_id" });
+      }).then((result) => { if (result.error) throw result.error; });
+    },
+    deleteAccountDetails() {
+      return currentUserId().then((userId) => {
+        if (!userId) throw new Error("Please sign in again.");
+        return supabase.from("client_details").delete().eq("user_id", userId);
+      }).then((result) => { if (result.error) throw result.error; });
     },
     // Admin only (the database allows nobody else). Needs supabase/migrations/007_booking_status.sql.
     updateBookingStatus(id, status) {
