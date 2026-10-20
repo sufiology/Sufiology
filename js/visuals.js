@@ -246,6 +246,9 @@
   /* ---------- 8. Red comet trail in the hero (a thin ribbon that fades fast, no words) ---------- */
   const hero = document.querySelector(".hero");
   const trailCanvas = byId("trail");
+
+  /* trail colour: red normally, gold on home picture 3 (--trail-rgb in css/site.css) */
+  const TRAIL_RGB = (getComputedStyle(document.documentElement).getPropertyValue("--trail-rgb") || "").trim() || "229,9,20";
   const trailPen = trailCanvas.getContext("2d");
   const TRAIL_LIFETIME_MS = 380;
   const TRAIL_MAX_POINTS = 40;
@@ -274,7 +277,7 @@
     for (let i = 2; i < trailPoints.length; i++) {
       const a = trailPoints[i - 2], b = trailPoints[i - 1], c = trailPoints[i];
       const freshness = 1 - (now - c.time) / TRAIL_LIFETIME_MS;     // 1 = new, 0 = gone
-      trailPen.strokeStyle = `rgba(229,9,20,${(freshness * 0.9).toFixed(2)})`;
+      trailPen.strokeStyle = `rgba(${TRAIL_RGB},${(freshness * 0.9).toFixed(2)})`;
       trailPen.lineWidth = 0.8 + freshness * 4.2;
       trailPen.beginPath();
       trailPen.moveTo((a.x + b.x) / 2, (a.y + b.y) / 2);

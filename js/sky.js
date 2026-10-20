@@ -32,7 +32,7 @@
 
   /* Colours that change with light / dark mode are read from the page (see theme.js and the
      :root variables in css/site.css). The rest never change. */
-  const RED = "#c7121c", CREAM = "#fbefd6";
+  const RED = (getComputedStyle(document.documentElement).getPropertyValue("--sky-accent") || "").trim() || "#c7121c", CREAM = "#fbefd6";   // --sky-accent: see css/site.css
   const LABEL_FONT = '800 12px "SF Pro Display", -apple-system, "Inter", sans-serif';
   const colors = { line: "#000000", background: "#ffffff" };   // replaced by readThemeColors()
 
