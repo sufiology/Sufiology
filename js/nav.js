@@ -9,7 +9,7 @@
 (function () {
   "use strict";
 
-  const CLOSE_AFTER_MS = 1000;                // how long the pointer may stay away before the menu hides
+  const CLOSE_AFTER_MS = 2000;                // how long the pointer may stay away before the menu hides
 
   const bar = document.querySelector(".bar");
   const area = document.querySelector(".bar-start");     // the three lines, the logo and the menu panel
@@ -24,6 +24,7 @@
   function setOpen(open) {
     cancelTimer();
     bar.classList.toggle("open", open);
+    document.documentElement.classList.toggle("menu-open", open);   // css stops the page scrolling behind the menu on phones
     button.setAttribute("aria-expanded", String(open));
     button.setAttribute("aria-label", open ? "Close menu" : "Open menu");
     if (open) bar.style.transform = "";

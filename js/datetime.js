@@ -1,6 +1,6 @@
 /* Date and time fields (v32).
    Every <input type="date"> and <input type="time"> on the page gets two ways in:
-   1. type it: dd/mm/yyyy for dates, hh:mm for times (the slashes and colon are added for you);
+   1. type it: dd/mm/yyyy for dates, hh:mm for times (the slashes and colon are added for you; the full keyboard opens and a pop-up explains any wrong character);
    2. tap the small calendar or clock icon to pick from the phone's own picker.
 
    The original input stays in the page, hidden, and always holds the clean value the rest of the site reads
@@ -87,7 +87,7 @@
     const text = document.createElement("input");
     text.type = "text";
     text.className = "dt-text";
-    text.inputMode = "numeric";
+    text.inputMode = "text";            // v31: the full keyboard opens (not the number pad); wrong characters are caught below and explained
     text.autocomplete = "off";
     text.maxLength = isDate ? 10 : 8;
     text.placeholder = isDate ? "dd/mm/yyyy" : "hh:mm (24-hour)";
@@ -117,6 +117,27 @@
 
     function showProblem(message) { text.setCustomValidity(message); }
 
+    /* Warning bubble (v31): a small pop-up under the box that explains the right format and mentions the icon.
+       It hides by itself after a few seconds, when the box is fixed, or when it is tapped. */
+    const FORMAT_HELP = isDate
+      ? "Wrong format. Type the date as dd/mm/yyyy, for example 07/04/1990, or tap the calendar icon to pick it."
+      : "Wrong format. Type the time as hh:mm, for example 18:30 (or 6:30 pm), or tap the clock icon to pick it.";
+    const bubble = document.createElement("span");
+    bubble.className = "dt-warn";
+    bubble.setAttribute("role", "alert");
+    bubble.hidden = true;
+    wrapper.append(bubble);
+    let bubbleTimer = null;
+    function warn(message) {
+      document.querySelectorAll(".dt-warn").forEach((other) => { other.hidden = true; });   // only one pop-up at a time
+      bubble.textContent = message;
+      bubble.hidden = false;
+      clearTimeout(bubbleTimer);
+      bubbleTimer = setTimeout(hideWarning, 5000);
+    }
+    function hideWarning() { clearTimeout(bubbleTimer); bubble.hidden = true; }
+    bubble.addEventListener("click", hideWarning);
+
     // Text box -> hidden input. Sends an "input" event so the rest of the site reacts exactly as before.
     function sendToNative(value) {
       if (native.value === value) return;
@@ -137,22 +158,30 @@
         showProblem("Pick today or a later date.");
         sendToNative("");
       } else if (isDate && native.max && value > native.max) {
-        showProblem("This date cannot be in the future.");       // birth dates (app.js sets max to today)
+        showProblem(native.id === "fBirthDate" ? "The date of birth cannot be after your booking date." : "This date cannot be in the future.");   // app.js sets max
         sendToNative("");
       } else {
         showProblem("");
+        hideWarning();
         sendToNative(value);
       }
     }
 
     text.addEventListener("input", () => {
+      // Characters that can never be part of a date or a time are removed, and the pop-up says what to type instead
+      const notAllowed = isDate ? /[^\d\/.\-\s]/ : /[^\d:.\sapm]/i;
+      const hadWrongCharacter = notAllowed.test(text.value);
       text.value = isDate ? typeDate(text.value) : typeTime(text.value);
+      if (hadWrongCharacter) warn(FORMAT_HELP);
       check();
     });
     // When you leave the box, tidy a time like "6:30 pm" into 18:30 so the format is always the same
     text.addEventListener("blur", () => {
       const value = isDate ? displayToIso(text.value) : displayToTime(text.value);
       if (value) text.value = isDate ? isoToDisplay(value) : value;
+      // Left the box with something that is not a real date or time: explain it
+      if (text.value && !value) warn(FORMAT_HELP);
+      else if (text.value && text.validationMessage) warn(text.validationMessage);   // real date but not allowed (for example a birth date after the booking date)
     });
 
     // Hidden picker -> text box (the user chose from the calendar or clock)

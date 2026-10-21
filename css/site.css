@@ -29,6 +29,9 @@
   /* Theme tokens. These are the ONLY values that change between light and dark mode.
      Light mode: white pages, black text and borders, bold red accents. Dark mode overrides them in the next block. */
   --surface-1: #ffffff;              /* bright sections: grahas, wheel, booking */
+  --paper: #fffdf4;                  /* notebook page (Notes) */
+  --paper-line: rgba(53, 112, 200, .28);
+  --paper-margin: rgba(229, 9, 20, .55);
   --surface-2: #ffffff;              /* soft sections and boxes: steps, YouTube, blog, forms */
   --field: #ffffff;                  /* text boxes */
   --fg: var(--ink);                  /* text and lines on those surfaces */
@@ -92,6 +95,9 @@
 
   --surface-1: #000000;
   --surface-2: #0b0b0b;
+  --paper: #161616;
+  --paper-line: rgba(140, 180, 255, .22);
+  --paper-margin: rgba(229, 9, 20, .7);
   --field: #141414;
   --fg: #ffffff;
   --edge: #ffffff;
@@ -516,8 +522,19 @@ h1 em    { display: block; font: italic 700 clamp(1.6rem, 4.4vw, 3.2rem)/1.15 va
 .youtube-badge::before { content: ""; position: absolute; z-index: 1; left: 50%; top: 50%; transform: translate(-35%, -50%); border-left: clamp(20px, 5vw, 32px) solid var(--cream); border-top: clamp(13px, 3.2vw, 20px) solid transparent; border-bottom: clamp(13px, 3.2vw, 20px) solid transparent; }
 @keyframes spin { to { transform: rotate(360deg); } }
 /* Instagram and WhatsApp Community buttons under the YouTube badge. TEMPORARY (v8): delete this rule with the .socials div in index.html if the owner does not want them. */
-.socials { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; margin-top: 34px; }
-.socials .btn { margin: 0; }
+.social-lead { margin: 44px 0 14px; font-weight: 700; letter-spacing: .02em; opacity: .75; }
+.social-cards { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; max-width: 700px; margin: 0 auto; text-align: left; }
+.social-card { display: flex; align-items: center; gap: 14px; padding: 18px 20px; border-radius: 22px; background: var(--surface-1); color: var(--fg); border: 2px solid var(--edge); text-decoration: none; }
+.social-card svg { flex: none; width: 34px; height: 34px; color: var(--red); }
+.social-text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px; }
+.social-text strong { font-size: 1.1rem; }
+.social-text small { font-size: .9rem; opacity: .75; }
+.social-go { flex: none; font-weight: 900; font-size: 1.3rem; color: var(--red); }
+@media (hover: hover) { .social-card:hover { border-color: var(--red); } }
+@media (max-width: 640px) { .social-cards { grid-template-columns: 1fr; } }
+
+/* Mobile: while the menu is open the page behind it does not scroll (js/nav.js sets html.menu-open) */
+@media (max-width: 1000px) { html.menu-open, html.menu-open body { overflow: hidden; } html.menu-open .nv { overscroll-behavior: contain; } }
 
 /* About */
 .about { display: grid; grid-template-columns: 1.2fr .8fr; gap: clamp(30px, 6vw, 90px); align-items: center; }
@@ -820,6 +837,8 @@ body.view-terms main > *:not(#termsView) { display: none; }
 .fld .dt { margin-top: 6px; }
 .dt .dt-text, .fld .dt .dt-text, .weekday .dt .dt-text { margin-top: 0; }
 .dt .dt-text { padding-right: 62px; }
+.dt-warn { position: absolute; z-index: 20; left: 0; right: 0; top: calc(100% + 8px); padding: 12px 14px; border-radius: 14px; background: #000000; color: #ffffff; border: 2px solid var(--red); font: 600 .9rem/1.4 var(--font-en); cursor: pointer; }
+.dt-warn[hidden] { display: none; }
 .dt-hint { display: block; margin-top: 6px; font: 600 .85rem/1.35 var(--font-en); opacity: .7; }
 .dt .dt-pick {
   position: absolute; top: 50%; right: 8px; transform: translateY(-50%);
@@ -918,3 +937,44 @@ body.view-terms main > *:not(#termsView) { display: none; }
 @media (hover: hover) { .faq-more .btn:hover { background: var(--red); border-color: var(--red); color: #ffffff; } }
 /* The white background runs edge to edge. The content column (1000px wide) is centred with side padding, not by narrowing the section (v22 fix: it used to leave black strips on both sides). */
 .faq-page { padding-left: max(var(--gutter), calc((100% - 1000px) / 2)); padding-right: max(var(--gutter), calc((100% - 1000px) / 2)); }
+
+
+/* ---------- Notes: a page of a notebook (v29) ----------
+   Ruled lines every 2rem (--line); all text sits on a line, and pictures are padded (js/app.js snapToLines) so the lines stay in step.
+   A red margin line and punched holes down the left side. Colours come from --paper, --paper-line, --paper-margin. */
+.notebook {
+  --line: 2rem;
+  position: relative; max-width: 44rem; margin: 24px 0;
+  padding: var(--line) clamp(18px, 4vw, 40px) var(--line) clamp(54px, 11vw, 92px);
+  background-color: var(--paper); color: var(--fg);
+  background-image: repeating-linear-gradient(to bottom, transparent 0, transparent calc(var(--line) - 1px), var(--paper-line) calc(var(--line) - 1px), var(--paper-line) var(--line));
+  border: 3px solid var(--edge); border-radius: 14px; box-shadow: 10px 10px 0 var(--edge-shadow);
+  font-size: 1.1rem; line-height: var(--line);
+}
+.notebook::before { content: ""; position: absolute; top: 0; bottom: 0; left: clamp(40px, 9vw, 72px); width: 2px; background: var(--paper-margin); }
+.notebook::after {
+  content: ""; position: absolute; top: 0; bottom: 0; left: 10px; width: 16px;
+  background: radial-gradient(circle at center, var(--surface-2) 0 6px, var(--edge) 6px 7px, transparent 7px) 0 0 / 16px 8rem repeat-y;
+}
+.notebook .post-title { margin: 0; font: 900 clamp(2rem, 6vw, 3rem)/calc(var(--line) * 2) var(--font-en); overflow-wrap: anywhere; }
+.notebook .post-date { margin: 0; opacity: .65; line-height: var(--line); }
+.notebook .post-text { margin: 0 0 var(--line); max-width: none; font-size: 1.1rem; line-height: var(--line); overflow-wrap: anywhere; }
+.note-photo { margin: 0 0 var(--line); padding: 0; }
+.note-photo img { display: block; max-width: 100%; max-height: 32rem; margin: 0 auto; padding: 8px; background: #ffffff; border: 2px solid var(--edge); box-shadow: 4px 4px 0 var(--edge-shadow); border-radius: 4px; }
+.note-photo figcaption { margin-top: 6px; text-align: center; font-size: .95rem; font-style: italic; line-height: var(--line); opacity: .8; }
+
+/* Cover picture: a 16:9 box. Wide pictures fill it; tall ones are shown whole (never stretched or cropped). */
+.post-cover { display: block; aspect-ratio: 16 / 9; margin: -6px -6px 14px; overflow: hidden; border-radius: 14px; background: rgba(128, 128, 128, .18); }
+.post-cover[hidden] { display: none; }
+.post-cover img { display: block; width: 100%; height: 100%; object-fit: contain; }
+.cover-edit { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin-top: 8px; }
+.cover-edit .post-cover { width: 220px; margin: 0; border: 2px solid var(--edge); }
+.inline-photo-edit { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 8px; }
+.inline-photo-edit input[type=text], .inline-photo-edit input:not([type]) { flex: 1; min-width: 12rem; }
+.fld small { display: block; margin-top: 6px; font-weight: 400; opacity: .75; }
+
+/* Sort pickers (Notes page and Dashboard) */
+.sort-picker { display: inline-flex; align-items: center; gap: 8px; margin: 0 0 18px; font: 700 .95rem var(--font-en); }
+.sort-picker select { padding: 8px 12px; border: 2px solid var(--edge); border-radius: 999px; background: var(--field); color: var(--fg); font: 700 .95rem var(--font-en); }
+.sort-bar { margin-top: 10px; }
+.post-card .post-cover { align-self: stretch; margin: 0 0 4px; }

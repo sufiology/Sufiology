@@ -49,6 +49,22 @@
   /* =======================================================================
      PREVIEW MODE: everything lives in this browser
      ======================================================================= */
+  /* Shrinks a picture in the browser before it is stored: longest side at most "longest" pixels, saved as WebP
+     (JPEG if the browser cannot), so phone photos of several MB become a few hundred KB. Returns a Blob. */
+  function shrinkImage(file, longest, quality) {
+    if (!/^image\/(jpeg|png|webp)$/.test(file.type)) return Promise.reject(new Error("Please choose a JPG, PNG or WebP picture."));
+    // createImageBitmap reads the file directly, so no blob address is needed (the page's security rules do not allow blob: images).
+    return createImageBitmap(file).then((bitmap) => new Promise((resolve, reject) => {
+      const scale = Math.min(1, longest / Math.max(bitmap.width, bitmap.height));
+      const canvas = document.createElement("canvas");
+      canvas.width = Math.max(1, Math.round(bitmap.width * scale));
+      canvas.height = Math.max(1, Math.round(bitmap.height * scale));
+      canvas.getContext("2d").drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+      if (bitmap.close) bitmap.close();
+      canvas.toBlob((blob) => blob ? resolve(blob) : reject(new Error("Could not read that picture.")), "image/webp", quality);
+    })).catch(() => { throw new Error("Could not read that picture."); });
+  }
+
   const preview = {
     load() {
       try {
@@ -110,6 +126,14 @@
       }
       preview.save(store);
       return Promise.resolve();
+    },
+    // Preview mode keeps the picture inside this browser (a small copy), so nothing is uploaded anywhere.
+    uploadImage(file) {
+      return shrinkImage(file, 900, 0.7).then((blob) => new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result);
+        reader.readAsDataURL(blob);
+      }));
     },
     deletePost(id) {
       const store = preview.load();
@@ -271,11 +295,21 @@
       return query.then((result) => { if (result.error) throw result.error; return result.data; });
     },
     savePost(post) {
-      const values = { title: post.title, body: post.body, published: post.published };
+      const values = { title: post.title, body: post.body, published: post.published, cover_url: post.cover_url || null };
       const query = post.id
         ? supabase.from("posts").update(values).eq("id", post.id)
         : supabase.from("posts").insert(values);
       return query.then((result) => { if (result.error) throw result.error; });
+    },
+    // Admin only (storage policy from migrations/009_post_images.sql). Returns the public address of the stored picture.
+    uploadImage(file) {
+      return shrinkImage(file, 1600, 0.85).then((blob) => {
+        const name = (window.crypto && crypto.randomUUID ? crypto.randomUUID() : String(Date.now()) + Math.random().toString(16).slice(2)) + ".webp";
+        return supabase.storage.from("post-images").upload(name, blob, { contentType: "image/webp", cacheControl: "31536000" }).then((result) => {
+          if (result.error) throw new Error("Could not upload the picture. Has migration 009 been run?");
+          return supabase.storage.from("post-images").getPublicUrl(name).data.publicUrl;
+        });
+      });
     },
     deletePost(id) {
       return supabase.from("posts").delete().eq("id", id).then((result) => { if (result.error) throw result.error; });

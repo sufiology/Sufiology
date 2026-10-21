@@ -429,12 +429,12 @@
   /* The small line at the top of the form: says whether it was filled from My account, and links there. */
   function showAccountNote() {
     const note = byId("accountNote");
-    const link = make("a", null, hasSavedDetails() ? "Edit my saved details" : "Open My account");
+    const link = make("a", null, hasSavedDetails() ? "Edit my saved details" : "Open My account, then My details");
     link.href = "#account";
     note.textContent = "";
     note.append(hasSavedDetails()
       ? "Filled in from your account. Booking for someone else? Just change anything below. "
-      : "Tip: save your name, number and birth details once and this form fills itself in. ", link);
+      : "Tip: go to My account, open the My details tab and save your name, WhatsApp number and birth details once. This form will then fill itself in. ", link);
   }
 
   /* True when at least one My account detail is saved */
@@ -491,6 +491,13 @@
     const todayIso = today.getFullYear() + "-" + ("0" + (today.getMonth() + 1)).slice(-2) + "-" + ("0" + today.getDate()).slice(-2);
     ["fBirthDate", "aBirthDate", "birthday"].forEach((id) => { const box = byId(id); if (box) box.max = todayIso; });
     byId("fDate").min = today.getFullYear() + "-" + ("0" + (today.getMonth() + 1)).slice(-2) + "-" + ("0" + today.getDate()).slice(-2);
+    // The date of birth cannot be after the booking date: its latest day is the preferred date once that is chosen (today until then)
+    const fBirthDate = byId("fBirthDate"), fDate = byId("fDate");
+    const limitBirthDate = () => { fBirthDate.max = fDate.value || todayIso; };
+    fDate.addEventListener("input", limitBirthDate);
+    fDate.addEventListener("change", limitBirthDate);
+    bookingForm.addEventListener("reset", () => setTimeout(limitBirthDate));
+    limitBirthDate();
     byId("timezoneNote").textContent = "Times are in your own time zone" + (timeZone ? " (" + timeZone + ")" : "") + ".";
 
     // The concern must say something (spaces alone do not count)
@@ -659,10 +666,55 @@
 
   /* ---------- 5. Blog (public) ---------- */
   /* One post in the list: a coloured card with the date, title, a short preview and a big Hindi number */
+  /* ----- Pictures in notes -----
+     A picture inside a note is one paragraph written as   [[image: ADDRESS | caption]]   (the caption is optional).
+     The Write page inserts it for you. Only pictures stored by this site are shown, never an address typed in by hand. */
+  const IMAGE_LINE = /^\[\[image:\s*([^|\]]+?)\s*(?:\|\s*([^\]]*?)\s*)?\]\]$/;
+  function safeImageUrl(url) {
+    const base = (window.SUF && window.SUF.supabaseUrl) || "";
+    if (/^data:image\/(webp|jpeg|png);base64,[A-Za-z0-9+/=]+$/.test(url)) return backend.isPreview;     // preview mode only
+    return !!base && url.indexOf(base + "/storage/v1/object/public/post-images/") === 0 && !/[\s"'<>]/.test(url);
+  }
+  function textOnly(body) { return body.replace(/\[\[image:[^\]]*\]\]/g, " ").replace(/\s+/g, " ").trim(); }
+
+  /* After a picture loads, pad it so the ruled lines under it line up with the lines above it again. */
+  function snapToLines(figure) {
+    const line = parseFloat(getComputedStyle(figure).lineHeight) || 32;      // one ruled line, in pixels
+    figure.style.paddingBottom = "";
+    const height = figure.getBoundingClientRect().height;
+    figure.style.paddingBottom = (Math.ceil(height / line) * line - height) + "px";
+  }
+
+  // The picture height changes with the window width, so redo the padding when the window is resized.
+  addEventListener("resize", () => document.querySelectorAll(".note-photo").forEach(snapToLines));
+
+  function buildNoteFigure(url, caption) {
+    const figure = make("figure", "note-photo");
+    const image = make("img");
+    image.src = url; image.alt = caption || "Picture in this note"; image.loading = "lazy";
+    figure.appendChild(image);
+    if (caption) figure.appendChild(make("figcaption", null, caption));
+    image.addEventListener("load", () => snapToLines(figure));
+    return figure;
+  }
+
+  /* The cover picture on a card: a 16:9 box. A wide picture fills it; a tall one is shown whole, never stretched or cropped. */
+  function buildCover(post) {
+    if (!post.cover_url || !safeImageUrl(post.cover_url)) return null;
+    const box = make("span", "post-cover");
+    const image = make("img");
+    image.src = post.cover_url; image.alt = ""; image.loading = "lazy";
+    box.appendChild(image);
+    return box;
+  }
+
   function buildPostCard(post, number) {
     const card = make("a", "post-card");
     card.href = "#blog/" + encodeURIComponent(post.id);
-    const preview = post.body.replace(/\s+/g, " ").slice(0, 150) + (post.body.length > 150 ? "…" : "");
+    const plain = textOnly(post.body);
+    const preview = plain.slice(0, 150) + (plain.length > 150 ? "…" : "");
+    const cover = buildCover(post);
+    if (cover) card.appendChild(cover);
     card.append(make("span", "pill", formatDate(post.created_at)), make("h3", null, post.title),
                 make("p", null, preview), make("span", "read", "Read the post →"),
                 make("span", "post-card-number hi", hindiNumber(number)));
@@ -681,6 +733,23 @@
                make("p", null, "Until then, Nishaad Sharma explains Vedic astrology in plain language on YouTube."),
                youtube, makeLink("#top", "Back to home"));
     return box;
+  }
+
+  let notesOrder = "latest";         // "latest" or "oldest", for the Notes page
+
+  /* A small "Latest first / Oldest first" picker, used on the Notes page and on the Dashboard. */
+  function sortPicker(current, onChange, label) {
+    const wrap = make("label", "sort-picker", label + " ");
+    const select = make("select");
+    [["latest", "Latest first"], ["oldest", "Oldest first"]].forEach(([value, text]) => {
+      const option = make("option", null, text);
+      option.value = value;
+      option.selected = value === current;
+      select.appendChild(option);
+    });
+    select.onchange = () => onChange(select.value);
+    wrap.appendChild(select);
+    return wrap;
   }
 
   function renderBlog() {
@@ -706,15 +775,23 @@
           return;
         }
         document.title = post.title + " — Sufiology";
-        list.append(makeLink("#blog", "← All posts"), make("h1", "post-title", post.title), make("p", "post-date", formatDate(post.created_at)));
-        post.body.split(/\n{2,}/).forEach((paragraph) => list.appendChild(make("p", "post-text", paragraph)));
-        list.appendChild(makeLink("#blog", "All posts"));
+        // The note is shown as a page of a notebook: ruled lines, a red margin line, holes on the left.
+        const page = make("article", "notebook");
+        page.append(make("h1", "post-title", post.title), make("p", "post-date", formatDate(post.created_at)));
+        post.body.split(/\n{2,}/).forEach((paragraph) => {
+          const picture = paragraph.trim().match(IMAGE_LINE);
+          if (picture && safeImageUrl(picture[1])) page.appendChild(buildNoteFigure(picture[1], picture[2] || ""));
+          else if (!picture) page.appendChild(make("p", "post-text", paragraph));
+        });
+        list.append(makeLink("#blog", "← All posts"), page, makeLink("#blog", "All posts"));
         return;
       }
 
       if (!posts.length) { list.appendChild(buildEmptyBlogNotice()); return; }
+      const sorted = posts.slice().sort((a, b) => (new Date(a.created_at) - new Date(b.created_at)) * (notesOrder === "oldest" ? 1 : -1));
+      list.appendChild(sortPicker(notesOrder, (value) => { notesOrder = value; renderBlog(); }, "Sort notes"));
       const grid = make("div", "blog-grid");                   // list of posts
-      posts.forEach((post, position) => grid.appendChild(buildPostCard(post, position + 1)));
+      sorted.forEach((post, position) => grid.appendChild(buildPostCard(post, position + 1)));
       list.appendChild(grid);
     }).catch(() => { list.textContent = "Could not load posts."; });
   }
@@ -801,7 +878,15 @@
     form.innerHTML =
       '<h3 id="postFormTitle">New post</h3>' +
       '<label class="fld">Title<input id="postTitle" required></label>' +
+      '<div class="fld">Cover picture (optional, shown on the Notes page card)' +
+        '<div class="cover-edit"><span class="post-cover" id="coverBox" hidden><img id="coverImg" alt=""></span>' +
+        '<input id="coverFile" type="file" accept="image/jpeg,image/png,image/webp">' +
+        '<button class="link-button" type="button" id="coverRemove" hidden>Remove cover</button></div></div>' +
       '<label class="fld">Post (a blank line starts a new paragraph)<textarea id="postBody" rows="12" required></textarea></label>' +
+      '<div class="fld">Add a picture inside the note, at the cursor' +
+        '<div class="inline-photo-edit"><input id="photoFile" type="file" accept="image/jpeg,image/png,image/webp">' +
+        '<input id="photoCaption" placeholder="Caption (optional)" maxlength="120"></div>' +
+        '<small>Click in the post where it should go, choose a picture and it is placed there. Leave the line that appears as it is (it starts with [[image:).</small></div>' +
       '<label class="fld check"><input id="postPublished" type="checkbox" checked>Published</label>' +
       '<div class="form-actions"><button class="btn" type="submit">Save post</button>' +
       '<button class="link-button" type="button" id="postClear">Clear</button></div>' +
@@ -813,8 +898,39 @@
     postsTitle.append(postsHeading, postCount);
     root.append(form, postsTitle, postList);
 
+    let coverUrl = "";
+    function showCover() {
+      byId("coverBox").hidden = !coverUrl;
+      byId("coverRemove").hidden = !coverUrl;
+      if (coverUrl) byId("coverImg").src = coverUrl;
+    }
+    byId("coverRemove").onclick = () => { coverUrl = ""; byId("coverFile").value = ""; showCover(); };
+
+    // Upload a chosen picture, then do something with its address. Problems show in the line under the form.
+    function withUpload(input, done) {
+      const file = input.files && input.files[0];
+      if (!file) return;
+      byId("postStatus").textContent = "Uploading the picture…";
+      backend.uploadImage(file).then((url) => { done(url); byId("postStatus").textContent = "Picture added. Press Save post to keep it."; })
+        .catch((error) => { byId("postStatus").textContent = error.message || "Could not add the picture."; })
+        .then(() => { input.value = ""; });
+    }
+    byId("coverFile").onchange = () => withUpload(byId("coverFile"), (url) => { coverUrl = url; showCover(); });
+    byId("photoFile").onchange = () => withUpload(byId("photoFile"), (url) => {
+      const body = byId("postBody");
+      const caption = byId("photoCaption").value.replace(/[|\]\n]/g, " ").trim();
+      const line = "[[image: " + url + (caption ? " | " + caption : "") + "]]";
+      const at = body.selectionStart === undefined ? body.value.length : body.selectionStart;
+      const before = body.value.slice(0, at).replace(/\s+$/, "");
+      const after = body.value.slice(at).replace(/^\s+/, "");
+      body.value = (before ? before + "\n\n" : "") + line + (after ? "\n\n" + after : "");
+      byId("photoCaption").value = "";
+    });
+
     function clearForm() {
       editingId = null;
+      coverUrl = "";
+      showCover();
       form.reset();
       byId("postFormTitle").textContent = "New post";
       byId("postStatus").textContent = "";
@@ -827,6 +943,7 @@
         id: editingId,
         title: byId("postTitle").value.trim(),
         body: byId("postBody").value,
+        cover_url: coverUrl || null,
         published: byId("postPublished").checked
       }).then(() => { clearForm(); byId("postStatus").textContent = "Saved."; showPosts(); })
         .catch((error) => { byId("postStatus").textContent = error.message || "Could not save."; });
@@ -849,6 +966,8 @@
               byId("postFormTitle").textContent = "Edit post";
               byId("postTitle").value = post.title;
               byId("postBody").value = post.body;
+              coverUrl = post.cover_url || "";
+              showCover();
               byId("postPublished").checked = !!post.published;
               form.scrollIntoView({ behavior: "smooth" });
             }, "small"),
@@ -989,7 +1108,10 @@
     const completedList = make("div");
     completed.append(completedTitle, completedList);
 
-    root.append(title, movedNote, openList, completed);
+    let requestOrder = "latest";         // newest or oldest sent first, for the open requests and the completed ones
+    const sortBar = make("div", "sort-bar");
+    sortBar.appendChild(sortPicker(requestOrder, (value) => { requestOrder = value; drawLists(); }, "Sort requests"));
+    root.append(title, sortBar, movedNote, openList, completed);
 
     let loaded = [];
     let doneIds = new Set();            // which requests were in "Completed" the last time the lists were drawn
@@ -1005,8 +1127,10 @@
     }
 
     function drawLists() {
-      const open = loaded.filter((b) => !isDone(b));
-      const finished = loaded.filter(isDone).sort((x, y) => whenDone(y) - whenDone(x));   // most recently completed first
+      const sent = (b) => new Date(b.created_at).getTime() || 0;
+      const direction = requestOrder === "oldest" ? 1 : -1;
+      const open = loaded.filter((b) => !isDone(b)).sort((x, y) => (sent(x) - sent(y)) * direction);
+      const finished = loaded.filter(isDone).sort((x, y) => (whenDone(x) - whenDone(y)) * direction);   // by when each was completed
       const notSeen = open.filter((b) => statusInfo(b.status).key === "not_seen").length;
       count.textContent = open.length + " open" + (notSeen ? " · " + notSeen + " not seen" : "");
       completedCount.textContent = String(finished.length);
