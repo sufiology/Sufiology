@@ -29,9 +29,9 @@
   /* Theme tokens. These are the ONLY values that change between light and dark mode.
      Light mode: white pages, black text and borders, bold red accents. Dark mode overrides them in the next block. */
   --surface-1: #ffffff;              /* bright sections: grahas, wheel, booking */
-  --paper: #fffdf4;                  /* notebook page (Notes) */
-  --paper-line: rgba(53, 112, 200, .28);
-  --paper-margin: rgba(229, 9, 20, .55);
+  --paper: #ffffff;                  /* notebook page (Notes): black and white only */
+  --paper-line: rgba(0, 0, 0, .14);
+  --paper-margin: rgba(0, 0, 0, .4);
   --surface-2: #ffffff;              /* soft sections and boxes: steps, YouTube, blog, forms */
   --field: #ffffff;                  /* text boxes */
   --fg: var(--ink);                  /* text and lines on those surfaces */
@@ -95,9 +95,9 @@
 
   --surface-1: #000000;
   --surface-2: #0b0b0b;
-  --paper: #161616;
-  --paper-line: rgba(140, 180, 255, .22);
-  --paper-margin: rgba(229, 9, 20, .7);
+  --paper: #000000;
+  --paper-line: rgba(255, 255, 255, .16);
+  --paper-margin: rgba(255, 255, 255, .45);
   --field: #141414;
   --fg: #ffffff;
   --edge: #ffffff;
@@ -676,7 +676,7 @@ body.view-terms main > *:not(#termsView) { display: none; }
 
 /* Blog: a bright header band, then post cards (or a friendly note while there are no posts) */
 #blogView { padding-top: 0; }
-#blogView.post-open { padding-top: 70px; }
+#blogView.post-open { padding-top: 100px; }
 .blog-hero { position: relative; overflow: hidden; padding: 150px var(--gutter) 40px; background: var(--surface-1); color: var(--fg); }
 .blog-hero[hidden] { display: none; }
 .blog-hero-text { position: relative; z-index: 1; }
@@ -695,16 +695,16 @@ body.view-terms main > *:not(#termsView) { display: none; }
   transition: transform .3s;
 }
 @media (hover: hover) { .post-card:hover { transform: rotate(-1deg) scale(1.02); } }
-.post-card:nth-child(3n + 1) { background: var(--surface-2); color: var(--fg); border: 3px solid var(--edge); }
-.post-card:nth-child(3n + 2) { background: var(--post-2); color: var(--post-2-text); }
-.post-card:nth-child(3n) { background: var(--band-ink); color: var(--cream); }
+/* Notes cards: black and white only. Black card with a white outline, white card with a black outline. */
+.post-card:nth-child(odd) { background: #000000; color: #ffffff; border: 3px solid #ffffff; }
+.post-card:nth-child(even) { background: #ffffff; color: #000000; border: 3px solid #000000; }
 .post-card > * { position: relative; z-index: 1; }
 .post-card h3 { font: 900 clamp(1.5rem, 3.4vw, 2.2rem)/1.1 var(--font-en); }
 .post-card p { opacity: .9; }
 .post-card .read { margin-top: auto; font-weight: 800; }
 .post-card .post-card-number { position: absolute; z-index: 0; right: .1em; bottom: -.15em; font: 700 8rem/1 var(--font-hi); opacity: .16; pointer-events: none; }
-.post-card .pill { background: var(--ink); color: #ffffff; }
-.post-card:nth-child(3n) .pill { background: #ffffff; color: var(--ink); }
+.post-card:nth-child(odd) .pill { background: #ffffff; color: #000000; }
+.post-card:nth-child(even) .pill { background: #000000; color: #ffffff; }
 
 .blog-empty { max-width: 640px; margin: 0 auto; padding: clamp(28px, 5vw, 56px); text-align: center; border: 3px solid var(--edge); border-radius: 32px; background: var(--field); box-shadow: 10px 10px 0 var(--edge-shadow); }
 .blog-empty .om { display: block; font: 700 5.5rem/1.1 var(--font-hi); color: var(--accent); }
@@ -948,19 +948,19 @@ body.view-terms main > *:not(#termsView) { display: none; }
   padding: var(--line) clamp(18px, 4vw, 40px) var(--line) clamp(54px, 11vw, 92px);
   background-color: var(--paper); color: var(--fg);
   background-image: repeating-linear-gradient(to bottom, transparent 0, transparent calc(var(--line) - 1px), var(--paper-line) calc(var(--line) - 1px), var(--paper-line) var(--line));
-  border: 3px solid var(--edge); border-radius: 14px; box-shadow: 10px 10px 0 var(--edge-shadow);
+  border: 3px solid var(--edge); border-radius: 14px;
   font-size: 1.1rem; line-height: var(--line);
 }
 .notebook::before { content: ""; position: absolute; top: 0; bottom: 0; left: clamp(40px, 9vw, 72px); width: 2px; background: var(--paper-margin); }
 .notebook::after {
   content: ""; position: absolute; top: 0; bottom: 0; left: 10px; width: 16px;
-  background: radial-gradient(circle at center, var(--surface-2) 0 6px, var(--edge) 6px 7px, transparent 7px) 0 0 / 16px 8rem repeat-y;
+  background: radial-gradient(circle at center, var(--paper) 0 6px, var(--edge) 6px 7px, transparent 7px) 0 0 / 16px 8rem repeat-y;
 }
 .notebook .post-title { margin: 0; font: 900 clamp(2rem, 6vw, 3rem)/calc(var(--line) * 2) var(--font-en); overflow-wrap: anywhere; }
 .notebook .post-date { margin: 0; opacity: .65; line-height: var(--line); }
 .notebook .post-text { margin: 0 0 var(--line); max-width: none; font-size: 1.1rem; line-height: var(--line); overflow-wrap: anywhere; }
 .note-photo { margin: 0 0 var(--line); padding: 0; }
-.note-photo img { display: block; max-width: 100%; max-height: 32rem; margin: 0 auto; padding: 8px; background: #ffffff; border: 2px solid var(--edge); box-shadow: 4px 4px 0 var(--edge-shadow); border-radius: 4px; }
+.note-photo img { display: block; max-width: 100%; max-height: 32rem; margin: 0 auto; padding: 8px; background: #ffffff; border: 2px solid var(--edge); border-radius: 4px; }
 .note-photo figcaption { margin-top: 6px; text-align: center; font-size: .95rem; font-style: italic; line-height: var(--line); opacity: .8; }
 
 /* Cover picture: a 16:9 box. Wide pictures fill it; tall ones are shown whole (never stretched or cropped). */
@@ -978,3 +978,13 @@ body.view-terms main > *:not(#termsView) { display: none; }
 .sort-picker select { padding: 8px 12px; border: 2px solid var(--edge); border-radius: 999px; background: var(--field); color: var(--fg); font: 700 .95rem var(--font-en); }
 .sort-bar { margin-top: 10px; }
 .post-card .post-cover { align-self: stretch; margin: 0 0 4px; }
+
+/* Write page: the form and a live preview of the note side by side (the preview drops below the form on narrow screens) */
+#adminView .page { max-width: 1320px; }
+.write-layout { display: grid; grid-template-columns: minmax(0, 1fr); gap: 28px; align-items: start; }
+.write-preview .notebook { margin: 0; max-width: none; }
+.write-preview-label { margin: 0 0 10px; font: 800 .9rem var(--font-en); }
+@media (min-width: 1000px) {
+  .write-layout { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+  .write-preview { position: sticky; top: 90px; max-height: calc(100vh - 110px); overflow-y: auto; }
+}

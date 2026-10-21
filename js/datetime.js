@@ -32,12 +32,23 @@
     return real && year >= 1900 && year <= MAX_YEAR ? `${parts[3]}-${parts[2]}-${parts[1]}` : "";
   }
 
-  // While typing: keep digits only and add the slashes (07041990 -> 07/04/1990)
+  // While typing: the slashes are added for you (07041990 -> 07/04/1990), and a slash you type yourself is kept
+  // after the day or the month (12/ stays 12/, and 5/ becomes 05/). A slash anywhere else is dropped.
   function typeDate(raw) {
-    const digits = raw.replace(/\D/g, "").slice(0, 8);
-    let text = digits.slice(0, 2);
-    if (digits.length > 2) text += "/" + digits.slice(2, 4);
-    if (digits.length > 4) text += "/" + digits.slice(4);
+    const limit = [2, 2, 4], parts = ["", "", ""];
+    let at = 0;
+    for (const character of raw) {
+      if (/\d/.test(character)) {
+        if (parts[at].length >= limit[at]) { if (at === 2) continue; at++; }
+        parts[at] += character;
+      } else if (/[\/.\-\s]/.test(character) && parts[at] && at < 2) {
+        if (parts[at].length === 1) parts[at] = "0" + parts[at];
+        at++;
+      }
+    }
+    let text = parts[0];
+    if (at >= 1) text += "/" + parts[1];
+    if (at >= 2) text += "/" + parts[2];
     return text;
   }
 
@@ -73,7 +84,8 @@
       text = digits.slice(0, hourLength);
       if (digits.length > hourLength) text += ":" + digits.slice(hourLength);
     }
-    if (marker && text.length >= 3) text += " " + marker.toUpperCase() + "M";
+    const hourNow = +text.split(":")[0];
+    if (marker && text.length >= 3 && hourNow >= 1 && hourNow <= 12) text += " " + marker.toUpperCase() + "M";
     return text;
   }
 
@@ -155,10 +167,10 @@
         showProblem(isDate ? "Enter a real date as dd/mm/yyyy, for example 07/04/1990." : "Enter a real time as hh:mm, for example 18:30.");
         sendToNative("");
       } else if (isDate && native.min && value < native.min) {
-        showProblem("Pick today or a later date.");
+        showProblem("Bookings can only be made for today or a future date, not for a date that has already passed.");
         sendToNative("");
       } else if (isDate && native.max && value > native.max) {
-        showProblem(native.id === "fBirthDate" ? "The date of birth cannot be after your booking date." : "This date cannot be in the future.");   // app.js sets max
+        showProblem(native.id === "fBirthDate" ? "Date of birth must be before your booking date. Please check the year." : "This date cannot be in the future.");   // app.js sets max
         sendToNative("");
       } else {
         showProblem("");
@@ -167,14 +179,19 @@
       }
     }
 
-    text.addEventListener("input", () => {
+    text.addEventListener("input", (event) => {
+      // Deleting (backspace, cut) is never reformatted, so you can always remove what you typed (v32 fix)
+      if (event.inputType && event.inputType.indexOf("delete") === 0) { check(); return; }
       // Characters that can never be part of a date or a time are removed, and the pop-up says what to type instead
       const notAllowed = isDate ? /[^\d\/.\-\s]/ : /[^\d:.\sapm]/i;
       const hadWrongCharacter = notAllowed.test(text.value);
       text.value = isDate ? typeDate(text.value) : typeTime(text.value);
       if (hadWrongCharacter) warn(FORMAT_HELP);
       check();
+      if (isDate && text.value.length === 10 && text.validationMessage) warn(text.validationMessage);   // full date typed but not allowed
     });
+    // Send pressed while this box is wrong: show the pop-up that says why (v32 fix)
+    text.addEventListener("invalid", () => { if (text.value) warn(text.validationMessage); });
     // When you leave the box, tidy a time like "6:30 pm" into 18:30 so the format is always the same
     text.addEventListener("blur", () => {
       const value = isDate ? displayToIso(text.value) : displayToTime(text.value);

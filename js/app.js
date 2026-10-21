@@ -708,6 +708,15 @@
     return box;
   }
 
+  /* Paragraphs and pictures of a note, added to a notebook page. Used by the reader and by the live preview on the Write page. */
+  function appendNoteBody(page, body) {
+    body.split(/\n{2,}/).forEach((paragraph) => {
+      const picture = paragraph.trim().match(IMAGE_LINE);
+      if (picture && safeImageUrl(picture[1])) page.appendChild(buildNoteFigure(picture[1], picture[2] || ""));
+      else if (!picture) page.appendChild(make("p", "post-text", paragraph));
+    });
+  }
+
   function buildPostCard(post, number) {
     const card = make("a", "post-card");
     card.href = "#blog/" + encodeURIComponent(post.id);
@@ -778,11 +787,7 @@
         // The note is shown as a page of a notebook: ruled lines, a red margin line, holes on the left.
         const page = make("article", "notebook");
         page.append(make("h1", "post-title", post.title), make("p", "post-date", formatDate(post.created_at)));
-        post.body.split(/\n{2,}/).forEach((paragraph) => {
-          const picture = paragraph.trim().match(IMAGE_LINE);
-          if (picture && safeImageUrl(picture[1])) page.appendChild(buildNoteFigure(picture[1], picture[2] || ""));
-          else if (!picture) page.appendChild(make("p", "post-text", paragraph));
-        });
+        appendNoteBody(page, post.body);
         list.append(makeLink("#blog", "← All posts"), page, makeLink("#blog", "All posts"));
         return;
       }
@@ -886,7 +891,7 @@
       '<div class="fld">Add a picture inside the note, at the cursor' +
         '<div class="inline-photo-edit"><input id="photoFile" type="file" accept="image/jpeg,image/png,image/webp">' +
         '<input id="photoCaption" placeholder="Caption (optional)" maxlength="120"></div>' +
-        '<small>Click in the post where it should go, choose a picture and it is placed there. Leave the line that appears as it is (it starts with [[image:).</small></div>' +
+        '<small>Click in the post where it should go, choose a picture and it is placed there as [[photo 1]]. Leave that line as it is; the preview shows the picture.</small></div>' +
       '<label class="fld check"><input id="postPublished" type="checkbox" checked>Published</label>' +
       '<div class="form-actions"><button class="btn" type="submit">Save post</button>' +
       '<button class="link-button" type="button" id="postClear">Clear</button></div>' +
@@ -896,7 +901,46 @@
     const postsHeading = make("h2", null, "Your posts");
     const postsTitle = make("div", "section-title");
     postsTitle.append(postsHeading, postCount);
-    root.append(form, postsTitle, postList);
+    // Live preview: the note as readers will see it, beside the form (below it on a phone)
+    const previewBox = make("aside", "write-preview");
+    previewBox.setAttribute("aria-label", "Preview of the note");
+    const previewPage = make("article", "notebook");
+    previewBox.append(make("p", "write-preview-label", "Preview: how the note looks when read"), previewPage);
+    const layout = make("div", "write-layout");
+    layout.append(form, previewBox);
+    root.append(layout, postsTitle, postList);
+
+    /* Pictures inside the post are shown as [[photo 1]], [[photo 2 | caption]] while writing, instead of the long address.
+       Saving turns them into the real [[image: ADDRESS | caption]] lines; editing an old post turns them back. */
+    let photos = [];
+    function toTokens(body) {
+      return body.replace(/\[\[image:\s*([^|\]]+?)\s*(?:\|\s*([^\]]*?)\s*)?\]\]/g, (all, url, caption) => {
+        let at = photos.indexOf(url);
+        if (at < 0) { photos.push(url); at = photos.length - 1; }
+        return "[[photo " + (at + 1) + (caption ? " | " + caption : "") + "]]";
+      });
+    }
+    function toStored(text) {
+      return text.replace(/\[\[photo\s+(\d+)\s*(?:\|\s*([^\]]*?)\s*)?\]\]/gi, (all, number, caption) => {
+        const url = photos[+number - 1];
+        return url ? "[[image: " + url + (caption ? " | " + caption : "") + "]]" : all;
+      });
+    }
+    let previewQueued = false;
+    function updatePreview() {
+      if (previewQueued) return;
+      previewQueued = true;
+      requestAnimationFrame(() => {
+        previewQueued = false;
+        previewPage.textContent = "";
+        const title = byId("postTitle").value.trim();
+        previewPage.append(make("h1", "post-title", title || "Your title"), make("p", "post-date", formatDate(new Date().toISOString())));
+        appendNoteBody(previewPage, toStored(byId("postBody").value));
+      });
+    }
+    byId("postTitle").addEventListener("input", updatePreview);
+    byId("postBody").addEventListener("input", updatePreview);
+    updatePreview();
 
     let coverUrl = "";
     function showCover() {
@@ -919,19 +963,23 @@
     byId("photoFile").onchange = () => withUpload(byId("photoFile"), (url) => {
       const body = byId("postBody");
       const caption = byId("photoCaption").value.replace(/[|\]\n]/g, " ").trim();
-      const line = "[[image: " + url + (caption ? " | " + caption : "") + "]]";
+      photos.push(url);
+      const line = "[[photo " + photos.length + (caption ? " | " + caption : "") + "]]";
       const at = body.selectionStart === undefined ? body.value.length : body.selectionStart;
       const before = body.value.slice(0, at).replace(/\s+$/, "");
       const after = body.value.slice(at).replace(/^\s+/, "");
       body.value = (before ? before + "\n\n" : "") + line + (after ? "\n\n" + after : "");
       byId("photoCaption").value = "";
+      updatePreview();
     });
 
     function clearForm() {
       editingId = null;
       coverUrl = "";
+      photos = [];
       showCover();
       form.reset();
+      updatePreview();
       byId("postFormTitle").textContent = "New post";
       byId("postStatus").textContent = "";
     }
@@ -939,10 +987,12 @@
 
     form.onsubmit = (event) => {
       event.preventDefault();
+      const missing = (byId("postBody").value.match(/\[\[photo\s+(\d+)/gi) || []).find((m) => !photos[+m.replace(/\D/g, "") - 1]);
+      if (missing) { byId("postStatus").textContent = "A picture line points to a picture that is not in this post. Remove that line or add the picture again."; return; }
       backend.savePost({
         id: editingId,
         title: byId("postTitle").value.trim(),
-        body: byId("postBody").value,
+        body: toStored(byId("postBody").value),
         cover_url: coverUrl || null,
         published: byId("postPublished").checked
       }).then(() => { clearForm(); byId("postStatus").textContent = "Saved."; showPosts(); })
@@ -965,7 +1015,9 @@
               editingId = post.id;
               byId("postFormTitle").textContent = "Edit post";
               byId("postTitle").value = post.title;
-              byId("postBody").value = post.body;
+              photos = [];
+              byId("postBody").value = toTokens(post.body);
+              updatePreview();
               coverUrl = post.cover_url || "";
               showCover();
               byId("postPublished").checked = !!post.published;
