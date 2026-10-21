@@ -685,13 +685,10 @@
     figure.style.paddingBottom = (Math.ceil(height / line) * line - height) + "px";
   }
 
-  // The picture height changes with the window width, so redo the padding when the window is resized.
-  addEventListener("resize", () => document.querySelectorAll(".note-photo").forEach(snapToLines));
-
   function buildNoteFigure(url, caption) {
     const figure = make("figure", "note-photo");
     const image = make("img");
-    image.src = url; image.alt = caption || "Picture in this note"; image.loading = "lazy";
+    image.src = url; image.alt = caption || "Picture in this note";   // not lazy: the page maker needs the real picture height
     figure.appendChild(image);
     if (caption) figure.appendChild(make("figcaption", null, caption));
     image.addEventListener("load", () => snapToLines(figure));
@@ -708,14 +705,131 @@
     return box;
   }
 
-  /* Paragraphs and pictures of a note, added to a notebook page. Used by the reader and by the live preview on the Write page. */
-  function appendNoteBody(page, body) {
-    body.split(/\n{2,}/).forEach((paragraph) => {
+  /* ----- Notebook pages (v33) -----
+     A note is cut into pages of a fixed number of ruled lines (--page-lines in css/site.css). When a page is full the text
+     carries on, on the next page; a picture that does not fit moves to the next page whole. The reader (and the live
+     preview on the Write page) gets Previous page / Next page buttons. Used by the reader and by the Write page preview. */
+  const IMAGE_WAIT_MS = 4000;          // do not wait longer than this for a picture before making the pages
+  let notebookHolders = [];            // notes on screen; made again when the window width changes
+
+  function waitForPictures(figures) {
+    const waits = figures.map((figure) => new Promise((resolve) => {
+      const image = figure.querySelector("img");
+      if (image.complete) { resolve(); return; }
+      image.addEventListener("load", resolve); image.addEventListener("error", resolve);
+      setTimeout(resolve, IMAGE_WAIT_MS);
+    }));
+    return Promise.all(waits);
+  }
+
+  /* Fills `holder` with a notebook page and its pager.
+     note = { title, dateText, body }; state = { page: number or "last" } remembers which page is open. */
+  function renderNotebook(holder, note, state) {
+    const token = (holder.renderToken = (holder.renderToken || 0) + 1);
+    const notebook = make("article", "notebook measuring");
+    const pageBody = make("div", "notebook-body");
+    notebook.appendChild(pageBody);
+    holder.appendChild(notebook);                      // hidden while it is measured; the old page stays visible meanwhile
+    holder.noteArguments = { note, state };
+    if (notebookHolders.indexOf(holder) < 0) notebookHolders.push(holder);
+
+    // What goes in the note, in order: the title, the date, then each paragraph and picture
+    const blocks = [];
+    note.body.split(/\n{2,}/).forEach((paragraph) => {
       const picture = paragraph.trim().match(IMAGE_LINE);
-      if (picture && safeImageUrl(picture[1])) page.appendChild(buildNoteFigure(picture[1], picture[2] || ""));
-      else if (!picture) page.appendChild(make("p", "post-text", paragraph));
+      if (picture && safeImageUrl(picture[1])) blocks.push({ figure: buildNoteFigure(picture[1], picture[2] || "") });
+      else if (!picture && paragraph.trim()) blocks.push({ text: paragraph.trim() });
+    });
+    const figures = blocks.filter((block) => block.figure).map((block) => block.figure);
+    figures.forEach((figure) => pageBody.appendChild(figure));   // in the page so the pictures start loading
+
+    waitForPictures(figures).then(() => {
+      if (token !== holder.renderToken) { notebook.remove(); return; }   // a newer version was started
+      pageBody.textContent = "";
+      const pages = cutIntoPages(pageBody, note, blocks);
+      holder.textContent = "";
+      holder.append(notebook, make("div", "note-pager"));
+      notebook.classList.remove("measuring");
+      holder.lastWidth = notebook.clientWidth;
+      showNotebookPage(holder, notebook, pageBody, pages, state);
     });
   }
+
+  /* Puts the blocks into pages that fit the body height. Returns a list of pages, each a list of elements. */
+  function cutIntoPages(pageBody, note, blocks) {
+    const capacity = pageBody.clientHeight;
+    const pages = [];
+    let current = [];
+    const bottomOf = (element) => element.getBoundingClientRect().bottom - pageBody.getBoundingClientRect().top;
+    const fits = (element) => bottomOf(element) <= capacity + 0.5;
+    const startNewPage = () => { pages.push(current); current = []; pageBody.textContent = ""; };
+    const place = (element) => { pageBody.appendChild(element); current.push(element); };
+
+    place(make("h1", "post-title", note.title || "Your title"));
+    place(make("p", "post-date", note.dateText));
+
+    function placeFigure(figure) {
+      place(figure);
+      snapToLines(figure);
+      if (!fits(figure) && current.length > 1) { current.pop(); figure.remove(); startNewPage(); place(figure); snapToLines(figure); }
+    }
+
+    function placeText(text) {
+      let words = text.split(/\s+/);
+      while (words.length) {
+        const paragraph = make("p", "post-text", words.join(" "));
+        place(paragraph);
+        if (fits(paragraph)) return;
+        // Too long for what is left of this page: find how many words fit, the rest goes on the next page
+        let low = 0, high = words.length - 1;
+        while (low < high) {
+          const middle = Math.ceil((low + high) / 2);
+          paragraph.textContent = words.slice(0, middle).join(" ");
+          if (fits(paragraph)) low = middle; else high = middle - 1;
+        }
+        if (low === 0 && current.length > 1) { current.pop(); paragraph.remove(); startNewPage(); continue; }
+        low = Math.max(low, 1);                         // a page always takes at least one word
+        paragraph.textContent = words.slice(0, low).join(" ");
+        words = words.slice(low);
+        startNewPage();
+      }
+    }
+
+    blocks.forEach((block) => { if (block.figure) placeFigure(block.figure); else placeText(block.text); });
+    pages.push(current);
+    return pages;
+  }
+
+  /* Shows one page and fills the pager (Previous page, Page 2 of 5, Next page). */
+  function showNotebookPage(holder, notebook, pageBody, pages, state) {
+    const index = Math.max(0, Math.min(state.page === "last" ? pages.length - 1 : state.page, pages.length - 1));
+    state.page = index;
+    pageBody.textContent = "";
+    pages[index].forEach((element) => pageBody.appendChild(element));
+
+    const pager = holder.querySelector(".note-pager");
+    pager.textContent = "";
+    if (pages.length < 2) return;
+    const go = (page) => { state.page = page; showNotebookPage(holder, notebook, pageBody, pages, state); };
+    const previous = makeButton("← Previous page", () => go(index - 1), "small");
+    const next = makeButton("Next page →", () => go(index + 1), "small");
+    previous.disabled = index === 0;
+    next.disabled = index === pages.length - 1;
+    pager.append(previous, make("span", "note-page-label", "Page " + (index + 1) + " of " + pages.length), next);
+  }
+
+  // The page width decides where lines break, so make the pages again when the window width changes.
+  let resizeTimer = null;
+  addEventListener("resize", () => {
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(() => {
+      notebookHolders = notebookHolders.filter((holder) => holder.isConnected);
+      notebookHolders.forEach((holder) => {
+        const open = holder.querySelector(".notebook");
+        if (open && open.clientWidth !== holder.lastWidth) renderNotebook(holder, holder.noteArguments.note, holder.noteArguments.state);
+      });
+    }, 250);
+  });
 
   function buildPostCard(post, number) {
     const card = make("a", "post-card");
@@ -785,10 +899,9 @@
         }
         document.title = post.title + " — Sufiology";
         // The note is shown as a page of a notebook: ruled lines, a red margin line, holes on the left.
-        const page = make("article", "notebook");
-        page.append(make("h1", "post-title", post.title), make("p", "post-date", formatDate(post.created_at)));
-        appendNoteBody(page, post.body);
-        list.append(makeLink("#blog", "← All posts"), page, makeLink("#blog", "All posts"));
+        const noteHolder = make("div", "note-holder");
+        list.append(makeLink("#blog", "← All posts"), noteHolder, makeLink("#blog", "All posts"));
+        renderNotebook(noteHolder, { title: post.title, dateText: formatDate(post.created_at), body: post.body }, { page: 0 });
         return;
       }
 
@@ -888,10 +1001,13 @@
         '<input id="coverFile" type="file" accept="image/jpeg,image/png,image/webp">' +
         '<button class="link-button" type="button" id="coverRemove" hidden>Remove cover</button></div></div>' +
       '<label class="fld">Post (a blank line starts a new paragraph)<textarea id="postBody" rows="12" required></textarea></label>' +
-      '<div class="fld">Add a picture inside the note, at the cursor' +
+      '<div class="fld">Add a picture inside the note' +
         '<div class="inline-photo-edit"><input id="photoFile" type="file" accept="image/jpeg,image/png,image/webp">' +
-        '<input id="photoCaption" placeholder="Caption (optional)" maxlength="120"></div>' +
-        '<small>Click in the post where it should go, choose a picture and it is placed there as [[photo 1]]. Leave that line as it is; the preview shows the picture.</small></div>' +
+        '<span class="photo-thumb" id="photoThumb" hidden><img id="photoThumbImg" alt=""></span>' +
+        '<input id="photoCaption" placeholder="Caption (optional)" maxlength="120">' +
+        '<button class="btn small" type="button" id="photoInsert" disabled>Insert picture</button>' +
+        '<button class="link-button" type="button" id="photoDiscard" hidden>Discard picture</button></div>' +
+        '<small>1. Click in the post where the picture should go. 2. Choose the picture. 3. Write a caption if you want one. 4. Press Insert picture. It is placed there as [[photo 1]]; leave that line as it is, the preview shows the picture.</small></div>' +
       '<label class="fld check"><input id="postPublished" type="checkbox" checked>Published</label>' +
       '<div class="form-actions"><button class="btn" type="submit">Save post</button>' +
       '<button class="link-button" type="button" id="postClear">Clear</button></div>' +
@@ -904,7 +1020,8 @@
     // Live preview: the note as readers will see it, beside the form (below it on a phone)
     const previewBox = make("aside", "write-preview");
     previewBox.setAttribute("aria-label", "Preview of the note");
-    const previewPage = make("article", "notebook");
+    const previewPage = make("div", "note-holder");
+    const previewState = { page: 0 };
     previewBox.append(make("p", "write-preview-label", "Preview: how the note looks when read"), previewPage);
     const layout = make("div", "write-layout");
     layout.append(form, previewBox);
@@ -932,14 +1049,19 @@
       previewQueued = true;
       requestAnimationFrame(() => {
         previewQueued = false;
-        previewPage.textContent = "";
-        const title = byId("postTitle").value.trim();
-        previewPage.append(make("h1", "post-title", title || "Your title"), make("p", "post-date", formatDate(new Date().toISOString())));
-        appendNoteBody(previewPage, toStored(byId("postBody").value));
+        renderNotebook(previewPage, {
+          title: byId("postTitle").value.trim(),
+          dateText: formatDate(new Date().toISOString()),
+          body: toStored(byId("postBody").value)
+        }, previewState);
       });
     }
     byId("postTitle").addEventListener("input", updatePreview);
-    byId("postBody").addEventListener("input", updatePreview);
+    byId("postBody").addEventListener("input", () => {
+      const box = byId("postBody");
+      if (box.selectionStart >= box.value.length) previewState.page = "last";   // writing at the end: the preview follows to the newest page
+      updatePreview();
+    });
     updatePreview();
 
     let coverUrl = "";
@@ -951,32 +1073,55 @@
     byId("coverRemove").onclick = () => { coverUrl = ""; byId("coverFile").value = ""; showCover(); };
 
     // Upload a chosen picture, then do something with its address. Problems show in the line under the form.
-    function withUpload(input, done) {
+    function withUpload(input, done, doneMessage) {
       const file = input.files && input.files[0];
       if (!file) return;
       byId("postStatus").textContent = "Uploading the picture…";
-      backend.uploadImage(file).then((url) => { done(url); byId("postStatus").textContent = "Picture added. Press Save post to keep it."; })
+      backend.uploadImage(file).then((url) => { done(url); byId("postStatus").textContent = doneMessage; })
         .catch((error) => { byId("postStatus").textContent = error.message || "Could not add the picture."; })
         .then(() => { input.value = ""; });
     }
-    byId("coverFile").onchange = () => withUpload(byId("coverFile"), (url) => { coverUrl = url; showCover(); });
-    byId("photoFile").onchange = () => withUpload(byId("photoFile"), (url) => {
-      const body = byId("postBody");
+    byId("coverFile").onchange = () => withUpload(byId("coverFile"), (url) => { coverUrl = url; showCover(); }, "Picture added. Press Save post to keep it.");
+
+    /* A picture inside the note takes three steps: choose it (it uploads at once), write a caption if you want,
+       press Insert picture. The place in the post is where the cursor last was. */
+    let pendingPhotoUrl = "";
+    let cursorAt = null;
+    const postBox = byId("postBody");
+    ["keyup", "click", "blur", "input"].forEach((name) => postBox.addEventListener(name, () => { cursorAt = postBox.selectionStart; }));
+
+    function showPendingPhoto() {
+      byId("photoThumb").hidden = !pendingPhotoUrl;
+      byId("photoDiscard").hidden = !pendingPhotoUrl;
+      byId("photoInsert").disabled = !pendingPhotoUrl;
+      if (pendingPhotoUrl) byId("photoThumbImg").src = pendingPhotoUrl;
+    }
+    function dropPendingPhoto() { pendingPhotoUrl = ""; byId("photoCaption").value = ""; showPendingPhoto(); }
+    byId("photoFile").onchange = () => withUpload(byId("photoFile"), (url) => { pendingPhotoUrl = url; showPendingPhoto(); },
+      "Picture uploaded. Write a caption if you like, then press Insert picture.");
+    byId("photoDiscard").onclick = () => { dropPendingPhoto(); byId("postStatus").textContent = ""; };
+    byId("photoInsert").onclick = () => {
+      if (!pendingPhotoUrl) return;
       const caption = byId("photoCaption").value.replace(/[|\]\n]/g, " ").trim();
-      photos.push(url);
+      photos.push(pendingPhotoUrl);
       const line = "[[photo " + photos.length + (caption ? " | " + caption : "") + "]]";
-      const at = body.selectionStart === undefined ? body.value.length : body.selectionStart;
-      const before = body.value.slice(0, at).replace(/\s+$/, "");
-      const after = body.value.slice(at).replace(/^\s+/, "");
-      body.value = (before ? before + "\n\n" : "") + line + (after ? "\n\n" + after : "");
-      byId("photoCaption").value = "";
+      const at = cursorAt === null ? postBox.value.length : Math.min(cursorAt, postBox.value.length);
+      const before = postBox.value.slice(0, at).replace(/\s+$/, "");
+      const after = postBox.value.slice(at).replace(/^\s+/, "");
+      postBox.value = (before ? before + "\n\n" : "") + line + (after ? "\n\n" + after : "");
+      cursorAt = (before ? before.length + 2 : 0) + line.length;
+      dropPendingPhoto();
+      byId("postStatus").textContent = "Picture inserted. Press Save post to keep it.";
       updatePreview();
-    });
+    };
 
     function clearForm() {
       editingId = null;
       coverUrl = "";
       photos = [];
+      cursorAt = null;
+      previewState.page = 0;
+      dropPendingPhoto();
       showCover();
       form.reset();
       updatePreview();
@@ -1016,6 +1161,9 @@
               byId("postFormTitle").textContent = "Edit post";
               byId("postTitle").value = post.title;
               photos = [];
+              cursorAt = null;
+              previewState.page = 0;
+              dropPendingPhoto();
               byId("postBody").value = toTokens(post.body);
               updatePreview();
               coverUrl = post.cover_url || "";

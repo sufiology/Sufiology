@@ -181,7 +181,7 @@
 
     text.addEventListener("input", (event) => {
       // Deleting (backspace, cut) is never reformatted, so you can always remove what you typed (v32 fix)
-      if (event.inputType && event.inputType.indexOf("delete") === 0) { check(); return; }
+      if (event.inputType && event.inputType.indexOf("delete") === 0) { hideWarning(); check(); return; }
       // Characters that can never be part of a date or a time are removed, and the pop-up says what to type instead
       const notAllowed = isDate ? /[^\d\/.\-\s]/ : /[^\d:.\sapm]/i;
       const hadWrongCharacter = notAllowed.test(text.value);
@@ -191,7 +191,8 @@
       if (isDate && text.value.length === 10 && text.validationMessage) warn(text.validationMessage);   // full date typed but not allowed
     });
     // Send pressed while this box is wrong: show the pop-up that says why (v32 fix)
-    text.addEventListener("invalid", () => { if (text.value) warn(text.validationMessage); });
+    // preventDefault hides the browser's own grey bubble, so only our pop-up shows (v33: they used to sit on top of each other)
+    text.addEventListener("invalid", (event) => { event.preventDefault(); warn(text.validationMessage); });
     // When you leave the box, tidy a time like "6:30 pm" into 18:30 so the format is always the same
     text.addEventListener("blur", () => {
       const value = isDate ? displayToIso(text.value) : displayToTime(text.value);
