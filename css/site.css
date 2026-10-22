@@ -700,7 +700,7 @@ body.view-terms main > *:not(#termsView) { display: none; }
 /* Notes cards: black and white only. Black card with a white outline, white card with a black outline. */
 .post-card:nth-child(odd) { background: #000000; color: #ffffff; border: 3px solid #ffffff; }
 .post-card:nth-child(even) { background: #ffffff; color: #000000; border: 3px solid #000000; }
-.post-card > * { position: relative; z-index: 1; }
+.post-card > * { position: relative; z-index: 1; max-width: 100%; min-width: 0; overflow-wrap: anywhere; }   /* a very long word wraps instead of running out of the card (v35) */
 .post-card h3 { font: 900 clamp(1.5rem, 3.4vw, 2.2rem)/1.1 var(--font-en); }
 .post-card p { opacity: .9; }
 .post-card .read { margin-top: auto; font-weight: 800; }
