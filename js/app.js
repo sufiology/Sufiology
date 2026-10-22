@@ -287,6 +287,7 @@
       byId("navMine").hidden = !user;      // "My account" (My details and My requests): every signed-in account, the admin too (v25; the menu is a dropdown now, so there is room)
       byId("navWrite").hidden = !(user && user.admin);
       byId("navDashboard").hidden = !(user && user.admin);
+      try { localStorage.setItem("suf_nav", JSON.stringify({ signedIn: !!user, admin: !!(user && user.admin) })); } catch (error) { /* storage blocked: the FAQ menu then shows only Sign in */ }   // menu hint for faq.html (js/nav.js)
       return loadSavedDetails().then(() => {
         renderBooking();
         renderBlog();
@@ -1474,7 +1475,18 @@
       "Preview mode: accounts, posts and booking requests are simulated in this browser. Demo admin: admin@demo.com (any password, create it first)."));
   }
 
-  backend.start().then(refreshAll).catch(() => {
+  // Links from the FAQ page menu: index.html#signin opens the sign-in box, index.html#signout signs out. The hash is then cleared.
+  function handleSignLinks() {
+    if (location.hash !== "#signin" && location.hash !== "#signout") return;
+    const wantsOut = location.hash === "#signout";
+    history.replaceState(null, "", location.pathname + location.search);
+    if (wantsOut) { if (currentUser) { bookingOpen = false; savedDetails = null; accountDirty = false; clearPersonalForms(); backend.signOut().then(refreshAll); } }
+    else if (currentUser) location.hash = "#account";
+    else openSignInBox("in");
+  }
+  addEventListener("hashchange", handleSignLinks);
+
+  backend.start().then(refreshAll).then(handleSignLinks).catch(() => {
     byId("bookingMessage").textContent = "Could not connect. Please try again later.";
   });
 })();

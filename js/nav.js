@@ -59,4 +59,26 @@
     previousY = scrollY;
     bar.classList.toggle("scrolled", scrollY > 8);      // phones: the bar gets a solid strip behind it so the page does not show through (css "3. Top bar")
   }, { passive: true });
+
+  /* FAQ page only (v37): this page does not sign anyone in. It shows the same account items as the home page, using a small
+     hint the home page saves in this browser (suf_nav). It is only for what the menu shows: the site and the database still
+     check who you are on every page. The Sign in / Sign out link opens the home page, which does the actual sign-in or sign-out. */
+  if (document.getElementById("authLink") && !document.getElementById("bookingForm")) {
+    let hint = {};
+    try { hint = JSON.parse(localStorage.getItem("suf_nav")) || {}; } catch (error) { hint = {}; }
+    const show = (id, visible) => { const item = document.getElementById(id); if (item) item.hidden = !visible; };
+    show("navMine", !!hint.signedIn);
+    show("navWrite", !!hint.admin);
+    show("navDashboard", !!hint.admin);
+    document.getElementById("authText").textContent = hint.signedIn ? "Sign out" : "Sign in";
+    document.getElementById("authLink").setAttribute("href", hint.signedIn ? "index.html#signout" : "index.html#signin");
+    const digits = ["०", "१", "२", "३", "४", "५", "६", "७", "८", "९"];
+    let count = 0;
+    document.querySelectorAll("#menu li").forEach((item) => {
+      if (item.hidden) return;
+      count += 1;
+      const number = item.querySelector("i");
+      if (number) number.textContent = String(count).split("").map((digit) => digits[+digit]).join("");
+    });
+  }
 })();
