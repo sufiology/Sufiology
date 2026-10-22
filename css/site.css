@@ -352,7 +352,7 @@ section.hero .actions .btn.outline { background: none; border-color: #ffffff; co
    Wide screens use img/hero-N.webp (1536 x 1024); phones use img/hero-N-m.webp (portrait crop). */
 html[data-scene="2"] section.hero { background-image: url("../img/hero-2.webp"); }
 @media (max-width: 1000px) {
-  html[data-scene="2"] section.hero { background-image: url("../img/hero-2-m.webp"); }
+  html[data-scene="2"] section.hero { background-image: url("../img/hero-2-m.webp"); background-position: center -11svh; }   /* v38: picture 2 sits higher on phones so the text does not cover him and the empty space above him is cropped (desktop unchanged) */
 }
 /* Picture 2 has Ganesha on the LEFT (he looks to the right), so the text moves to the right side, as if he is looking at it.
    The picture is left aligned; the dark fade for the text runs from the right edge. Animated by js/live2.js. */
