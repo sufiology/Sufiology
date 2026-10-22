@@ -348,11 +348,21 @@ section.hero .actions .btn.outline { background: none; border-color: #ffffff; co
   section.hero .hero-text { max-width: none; }
   section.hero::before { background: linear-gradient(180deg, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 0) 22%, rgba(0, 0, 0, .88) 56%, rgba(0, 0, 0, .94) 100%); }
 }
+/* v39: on phones the picture fills the full width (no black bars at the sides) and fades into solid black
+   before its bottom edge (no hard line). Picture 1 is 696 x 946, so it is 1.36 times as tall as the screen is wide. */
+@media (max-width: 600px) {
+  section.hero { background-size: 100% auto; }
+  section.hero::before { background: linear-gradient(180deg, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 0) 22%, rgba(0, 0, 0, .88) 56%, #000 calc(100vw * 1.3)); }
+}
 /* Random home picture: js/theme.js puts data-scene="1" or "2" on <html>. Picture 1 is the default above.
    Wide screens use img/hero-N.webp (1536 x 1024); phones use img/hero-N-m.webp (portrait crop). */
 html[data-scene="2"] section.hero { background-image: url("../img/hero-2.webp"); }
 @media (max-width: 1000px) {
   html[data-scene="2"] section.hero { background-image: url("../img/hero-2-m.webp"); background-position: center -11svh; }   /* v38: picture 2 sits higher on phones so the text does not cover him and the empty space above him is cropped (desktop unchanged) */
+}
+@media (max-width: 600px) {
+  html[data-scene="2"] section.hero { background-size: 100% auto; }
+  html[data-scene="2"] section.hero::before { background: linear-gradient(180deg, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 0) 22%, rgba(0, 0, 0, .88) 56%, #000 calc(100vw * 1.3 - 11svh)); }
 }
 /* Picture 2 has Ganesha on the LEFT (he looks to the right), so the text moves to the right side, as if he is looking at it.
    The picture is left aligned; the dark fade for the text runs from the right edge. Animated by js/live2.js. */
@@ -779,7 +789,9 @@ body.view-terms main > *:not(#termsView) { display: none; }
 /* My account (v14): two tabs, My details and My requests, at the top of both pages */
 .subtabs { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 22px; }
 .subtabs a { padding: 9px 20px; border: 3px solid var(--edge); border-radius: 999px; color: var(--fg); font: 800 .9rem var(--font-en); text-decoration: none; }
-@media (hover: hover) { .subtabs a:hover, .subtabs a[aria-current="page"] { background: var(--btn-solid); border-color: var(--btn-solid); color: var(--btn-solid-text); } }
+@media (hover: hover) { .subtabs a:hover { background: var(--btn-solid); border-color: var(--btn-solid); color: var(--btn-solid-text); } }
+/* v39: the tab you are on is always filled red (before, it only showed on mouse hover, so phones showed no difference) */
+.subtabs a[aria-current="page"] { background: var(--red); border-color: var(--red); color: #ffffff; }
 
 /* My details page (v14): the optional saved details */
 .account-form { max-width: 560px; }
