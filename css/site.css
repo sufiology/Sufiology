@@ -945,7 +945,7 @@ body.view-terms main > *:not(#termsView) { display: none; }
    Ruled lines every 2rem (--line); all text sits on a line, and pictures are padded (js/app.js snapToLines) so the lines stay in step.
    A red margin line and punched holes down the left side. Colours come from --paper, --paper-line, --paper-margin. */
 .notebook {
-  --line: 2rem; --page-lines: 20;                         /* a page holds this many ruled lines (v33) */
+  --line: 2rem; --page-lines: 46;                         /* a page holds this many ruled lines: title, one picture and at least 30 lines of writing (v34) */
   position: relative; max-width: 44rem; margin: 24px 0;
   padding: var(--line) clamp(18px, 4vw, 40px) var(--line) clamp(54px, 11vw, 92px);
   background-color: var(--paper); color: var(--fg);
@@ -958,11 +958,11 @@ body.view-terms main > *:not(#termsView) { display: none; }
   content: ""; position: absolute; top: 0; bottom: 0; left: 10px; width: 16px;
   background: radial-gradient(circle at center, var(--paper) 0 6px, var(--edge) 6px 7px, transparent 7px) 0 0 / 16px 8rem repeat-y;
 }
-.notebook .post-title { margin: 0; font: 900 clamp(2rem, 6vw, 3rem)/calc(var(--line) * 2) var(--font-en); overflow-wrap: anywhere; }
+.notebook .post-title { margin: 0; font: 900 clamp(1.5rem, 5vw, 1.75rem)/var(--line) var(--font-en); overflow-wrap: anywhere; }   /* one ruled line, bold (v34) */
 .notebook .post-date { margin: 0 0 var(--line); opacity: .65; line-height: var(--line); }
 .notebook .post-text { margin: 0 0 var(--line); max-width: none; font-size: 1.1rem; line-height: var(--line); overflow-wrap: anywhere; }
 .note-photo { margin: 0 0 var(--line); padding: 0; }
-.note-photo img { display: block; max-width: 100%; max-height: 22rem; margin: 0 auto; padding: 8px; background: #ffffff; border: 2px solid var(--edge); border-radius: 4px; }
+.note-photo img { display: block; max-width: 100%; max-height: 14rem; margin: 0 auto; padding: 8px; background: #ffffff; border: 2px solid var(--edge); border-radius: 4px; }
 .note-photo figcaption { margin-top: 6px; text-align: center; font-size: .95rem; font-style: italic; line-height: var(--line); opacity: .8; }
 
 /* Notebook pages (v33): every page is the same height; Previous page / Next page sit under it */
@@ -975,7 +975,7 @@ body.view-terms main > *:not(#termsView) { display: none; }
 .photo-thumb { display: block; width: 100%; }
 .photo-thumb[hidden] { display: none; }
 .photo-thumb img { display: block; max-height: 90px; max-width: 100%; border: 2px solid var(--edge); border-radius: 6px; }
-@media (max-width: 600px) { .notebook { --page-lines: 16; } }
+@media (max-width: 600px) { .note-photo img { max-height: 12rem; } }
 
 /* Cover picture: a 16:9 box. Wide pictures fill it; tall ones are shown whole (never stretched or cropped). */
 .post-cover { display: block; aspect-ratio: 16 / 9; margin: -6px -6px 14px; overflow: hidden; border-radius: 14px; background: rgba(128, 128, 128, .18); }
