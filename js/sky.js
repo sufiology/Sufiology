@@ -12,6 +12,7 @@
   "use strict";
 
   const grahas = window.SUF_DATA.grahas;
+  const sunInfo = window.SUF_DATA.sun;
   const prefersReducedMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
 
   const canvas = document.getElementById("sky");
@@ -49,7 +50,9 @@
   let tilt = BASE_TILT, tiltTarget = BASE_TILT;
   let lineUp = 0;                   // 0 = free orbits, 1 = lined up
   let holding = false, holdStartedAt = 0;
-  let selected = -1;
+  let selected = -1;                // index of the tapped planet, SUN_INDEX for the Sun, -1 for none
+  const SUN_INDEX = -2;
+  let sunPosition = null;           // where the Sun was drawn last frame, for tapping
   let planetPositions = [];         // where each planet was drawn last frame, for tapping
   let running = false, lastFrameTime = 0;
 
@@ -84,6 +87,22 @@
     pen.strokeStyle = colors.line; pen.lineWidth = 3; pen.stroke();
 
     pen.beginPath(); pen.arc(cx, cy, sunHaloRadius(), 0, 7); pen.lineWidth = 1.5; pen.stroke();
+
+    if (selected === SUN_INDEX) {                         // red halo on the tapped Sun
+      pen.strokeStyle = RED; pen.lineWidth = 4;
+      pen.beginPath(); pen.arc(cx, cy, sunHaloRadius() + 7, 0, 7); pen.stroke();
+    }
+    sunPosition = { x: cx, y: cy, hitRadius: sunHaloRadius() };
+
+    // Name above the Sun, drawn like the planet names
+    if ("letterSpacing" in pen) pen.letterSpacing = "-0.3px";
+    pen.font = LABEL_FONT;
+    pen.textAlign = "center"; pen.textBaseline = "alphabetic";
+    pen.lineJoin = "round"; pen.lineWidth = 4; pen.strokeStyle = colors.background;
+    const labelY = cy - sunHaloRadius() - (selected === SUN_INDEX ? 16 : 8);
+    pen.strokeText(sunInfo.name, cx, labelY);
+    pen.fillStyle = colors.line;
+    pen.fillText(sunInfo.name, cx, labelY);
 
     // The ॐ on the Sun, centred by measuring the glyph
     if ("letterSpacing" in pen) pen.letterSpacing = "0px";
@@ -172,10 +191,18 @@
     pen.beginPath(); pen.arc(x, y, radius, 0, 7); pen.fill();
     pen.strokeStyle = colors.line; pen.lineWidth = 2; pen.stroke();
 
-    if (planet.ring) {                                    // Jupiter's thin ring
-      pen.globalAlpha *= 0.5;
-      pen.beginPath(); pen.ellipse(x, y, radius * 1.7, radius * 0.5, -0.3, 0, 7); pen.stroke();
-      pen.globalAlpha = layer === "ghost" ? GHOST_OPACITY : 1;
+    if (planet.ring) {                                    // Jupiter has a thin ring, Saturn a wide double ring
+      const wide = planet.ring === "wide";
+      const ringAlpha = layer === "ghost" ? GHOST_OPACITY : 1;
+      pen.strokeStyle = colors.line;
+      pen.globalAlpha = ringAlpha * (wide ? 0.95 : 0.5);
+      pen.lineWidth = wide ? 2.5 : 2;
+      pen.beginPath(); pen.ellipse(x, y, radius * (wide ? 2.1 : 1.7), radius * (wide ? 0.62 : 0.5), -0.3, 0, 7); pen.stroke();
+      if (wide) {
+        pen.lineWidth = 1.5;
+        pen.beginPath(); pen.ellipse(x, y, radius * 1.65, radius * 0.48, -0.3, 0, 7); pen.stroke();
+      }
+      pen.globalAlpha = ringAlpha;
     }
     if (index === selected) {                             // red halo on the tapped planet
       pen.strokeStyle = RED; pen.lineWidth = 4;
@@ -235,7 +262,7 @@
 
   /* ----- Interaction ----- */
   function showInfo(index) {
-    const g = grahas[index];
+    const g = index === SUN_INDEX ? sunInfo : grahas[index];
     infoBox.innerHTML = `<b>${g.name} · ${g.english}</b>${g.about}`;
   }
 
@@ -246,7 +273,8 @@
     planetPositions.forEach((p, i) => {
       if (p && Math.hypot(mx - p.x, my - p.y) < p.hitRadius + 8) selected = i;
     });
-    if (selected > -1) showInfo(selected);
+    if (selected === -1 && sunPosition && Math.hypot(mx - sunPosition.x, my - sunPosition.y) < sunPosition.hitRadius) selected = SUN_INDEX;
+    if (selected !== -1) showInfo(selected);
     if (prefersReducedMotion) drawFrame();
   });
 

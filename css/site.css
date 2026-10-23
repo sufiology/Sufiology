@@ -371,6 +371,24 @@ html[data-scene="2"] section.hero { background-image: url("../img/hero-2.webp");
   html[data-scene="2"] section.hero .hero-text { max-width: 38vw; width: 38vw; }
   html[data-scene="2"] section.hero::before { background: linear-gradient(270deg, rgba(0, 0, 0, .22) 0%, rgba(0, 0, 0, .14) 45%, rgba(0, 0, 0, 0) 70%); }   /* only a light fade: the picture is not darkened */
 }
+/* v40: phones turned sideways (and "desktop site" on a phone). The screen is wide but very short, so the tall
+   phone layout showed only Ganesha. Here the print is used the way the PC does (Ganesha on one side, the text
+   on the green wall on the other, same positions) and the text is sized from the screen HEIGHT so it fits.
+   Only short landscape screens match; the normal PC layout is not touched. */
+@media (orientation: landscape) and (max-height: 620px) {
+  section.hero { min-height: max(100svh, 400px); align-items: center; padding: 76px 0 24px 9vw; background: #000 url("../img/hero-bg.webp") right center / cover no-repeat; }
+  section.hero .hero-text { max-width: 44vw; }
+  section.hero::before { background: linear-gradient(90deg, rgba(0, 0, 0, .62) 0%, rgba(0, 0, 0, .5) 46%, rgba(0, 0, 0, 0) 60%); }
+  section.hero .hero-2 { font-size: clamp(2rem, 14vh, 4.2rem); }
+  section.hero h1 em { font-size: clamp(1.05rem, 6.4vh, 1.9rem); }
+  section.hero .lede { margin-top: 10px; font-size: clamp(.8rem, 3.8vh, 1rem); line-height: 1.4; }
+  section.hero .lede b { margin-bottom: 2px; }
+  section.hero .actions { flex-direction: row; align-items: center; gap: 12px; margin-top: 12px; }
+  section.hero .actions .btn { padding: 8px 18px; font-size: clamp(.8rem, 3.8vh, 1rem); }
+  html[data-scene="2"] section.hero { background-image: url("../img/hero-2.webp"); background-position: left center; background-size: cover; justify-content: flex-end; padding: 76px 6vw 24px 0; }
+  html[data-scene="2"] section.hero .hero-text { max-width: 44vw; width: 44vw; }
+  html[data-scene="2"] section.hero::before { background: linear-gradient(270deg, rgba(0, 0, 0, .22) 0%, rgba(0, 0, 0, .14) 45%, rgba(0, 0, 0, 0) 70%); }
+}
 section.hero h1 em { text-wrap: balance; }   /* if the third line wraps, keep both lines even */
 
 

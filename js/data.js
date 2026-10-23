@@ -122,13 +122,16 @@ window.SUF_DATA = {
   /* ----- The nine grahas drawn in the orbit animation.
          orbit = size of the orbit (0 to 1), speed = how fast it circles (negative = backwards),
          size = planet radius in pixels at full size. ----- */
+  /* The Sun sits in the middle of the orbit animation (it is not one of the circling grahas). */
+  sun: { name: "Surya", english: "Sun", about: "Soul, vitality, authority, and the father." },
+
   grahas: [
     { name: "Chandra", english: "Moon",       orbit: .19, speed:  2.4,  color: "#fffaf0", size: 13, about: "Mind, emotions, and the mother." },
     { name: "Budha",   english: "Mercury",    orbit: .28, speed:  1.7,  color: "#5a4733", size: 11, about: "Speech, analysis, trade, and learning." },
     { name: "Shukra",  english: "Venus",      orbit: .37, speed:  1.25, color: "#c7121c", size: 15, about: "Love, art, comfort, and pleasure." },
     { name: "Mangala", english: "Mars",       orbit: .46, speed:  .95,  color: "#9e0d15", size: 13, about: "Drive, courage, and conflict." },
-    { name: "Guru",    english: "Jupiter",    orbit: .55, speed:  .6,   color: "#fbefd6", size: 22, about: "Wisdom, teachers, growth, and fortune.", ring: true },
-    { name: "Shani",   english: "Saturn",     orbit: .64, speed:  .4,   color: "#120d09", size: 18, about: "Discipline, delay, duty, and endurance." },
+    { name: "Guru",    english: "Jupiter",    orbit: .55, speed:  .6,   color: "#fbefd6", size: 22, about: "Wisdom, teachers, growth, and fortune.", ring: "thin" },
+    { name: "Shani",   english: "Saturn",     orbit: .64, speed:  .4,   color: "#120d09", size: 18, about: "Discipline, delay, duty, and endurance.", ring: "wide" },
     { name: "Rahu",    english: "North node", orbit: .73, speed: -.27,  color: "#5a4733", size: 12, about: "Ambition, obsession, and the unfamiliar." },
     { name: "Ketu",    english: "South node", orbit: .82, speed: -.27,  color: "#120d09", size: 12, about: "Detachment, insight, and what you have outgrown.", oppositeOf: "Rahu" }
   ],
