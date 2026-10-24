@@ -52,6 +52,21 @@
     button.classList.add("pressed");
     setTimeout(() => button.classList.remove("pressed"), 180);
   }
+  /* Runs a slow job (a save or a send) behind a button: the button shows a working label ("Sending…") and is switched off
+     until the job ends, then returns to its normal label. Used by every button that waits for the server (v41). */
+  function runBusy(button, workingLabel, task) {
+    const idleLabel = button.textContent;
+    flashPressed(button);
+    button.disabled = true;
+    button.classList.add("busy");
+    button.textContent = workingLabel;
+    const finish = () => {
+      button.disabled = false;
+      button.classList.remove("busy");
+      if (button.textContent === workingLabel) button.textContent = idleLabel;   // unless the caller already set a new label
+    };
+    return task().then((result) => { finish(); return result; }, (error) => { finish(); throw error; });
+  }
   function makeLink(href, label) {
     const link = make("a", "btn", label);
     link.href = href;
@@ -228,9 +243,13 @@
     const googleButton = byId("authGoogle");
     if (googleButton) googleButton.onclick = () => {
       showAuthProblem("");
+      const googleLabel = googleButton.querySelector(".g-label");
+      const googleIdle = googleLabel.textContent;
       googleButton.disabled = true;
+      googleLabel.textContent = "Opening Google…";
       backend.signInWithGoogle().catch((error) => {
         googleButton.disabled = false;
+        googleLabel.textContent = googleIdle;
         showAuthProblem(friendlyAuthError(error, signInMode));
       });
     };
@@ -515,9 +534,8 @@
 
       const value = (id) => byId(id).value.trim();
       const submit = bookingForm.querySelector("button[type=submit]");
-      submit.disabled = true;
 
-      backend.sendBooking({
+      runBusy(submit, "Sending…", () => backend.sendBooking({
         tier: chosenTier,
         name: value("fName"),
         date: value("fDate"),
@@ -533,7 +551,7 @@
         consent: byId("fConsent").checked,
         consent_data: byId("fConsentData").checked,
         consent_age: byId("fConsentAge").checked
-      }).then(() => {
+      })).then(() => {
         sentMessage = "Request sent. You will get a reply by email or WhatsApp once your slot is confirmed, with payment details and your video call link." +
                       (backend.isPreview ? " (Preview mode: no email was actually sent.)" : "");
         bookingForm.reset();
@@ -545,7 +563,7 @@
         byId("bookingMessage").scrollIntoView({ behavior: "smooth", block: "center" });
       }).catch((error) => {
         byId("bookingMessage").textContent = error.message || "Could not send your request.";
-      }).then(() => { submit.disabled = false; });
+      });
     };
   }
   if (bookingForm) setUpBookingForm();
@@ -640,8 +658,7 @@
     if (details.birth_date && details.birth_date > todayIso) { sayAboutAccount("The date of birth cannot be in the future."); return; }
 
     const saveButton = accountForm.querySelector("button[type=submit]");
-    saveButton.disabled = true;
-    backend.saveAccountDetails(details).then(() => {
+    runBusy(saveButton, "Saving…", () => backend.saveAccountDetails(details)).then(() => {
       savedDetails = details;
       accountDirty = false;
       fillAccountForm(savedDetails);
@@ -651,11 +668,11 @@
       setTimeout(() => { saveButton.textContent = "Save my details"; }, 2000);
     }).catch(() => {
       sayAboutAccount("Could not save your details. Please try again in a moment.");
-    }).then(() => { saveButton.disabled = false; saveButton.blur(); });
+    }).then(() => { saveButton.blur(); });
   };
 
-  byId("accountRemove").onclick = () => {
-    backend.deleteAccountDetails().then(() => {
+  byId("accountRemove").onclick = (event) => {
+    runBusy(event.currentTarget, "Removing…", () => backend.deleteAccountDetails()).then(() => {
       savedDetails = null;
       accountDirty = false;
       fillAccountForm(null);
@@ -967,6 +984,7 @@
     } else {
       const start = makeButton("Set up two-step sign-in", () => {
         start.disabled = true;
+        start.textContent = "Setting up…";
         backend.twoStepStart().then((setup) => {
           factorId = setup.factorId;
           const qr = make("img", "twostep-qr");
@@ -976,7 +994,7 @@
           box.append(make("p", null, "1. Scan this code with an authenticator app (Google Authenticator, Microsoft Authenticator, Authy or 1Password)."), qr,
                      make("p", null, "Or type this key into the app by hand. Keep a copy somewhere safe, it is the only way to set the app up again on a new phone:"), secret,
                      make("p", null, "2. Type the 6-digit code the app shows."), codeRow, message);
-        }).catch(() => { message.textContent = "Could not start the setup. Please try again."; start.disabled = false; });
+        }).catch(() => { message.textContent = "Could not start the setup. Please try again."; start.disabled = false; start.textContent = "Set up two-step sign-in"; });
       });
       box.append(make("h3", null, "Set up two-step sign-in"),
                  make("p", null, "Admin pages need a code from an authenticator app as well as your password. This takes about a minute."), start, message);
@@ -1135,13 +1153,13 @@
       event.preventDefault();
       const missing = (byId("postBody").value.match(/\[\[photo\s+(\d+)/gi) || []).find((m) => !photos[+m.replace(/\D/g, "") - 1]);
       if (missing) { byId("postStatus").textContent = "A picture line points to a picture that is not in this post. Remove that line or add the picture again."; return; }
-      backend.savePost({
+      runBusy(form.querySelector("button[type=submit]"), "Saving…", () => backend.savePost({
         id: editingId,
         title: byId("postTitle").value.trim(),
         body: toStored(byId("postBody").value),
         cover_url: coverUrl || null,
         published: byId("postPublished").checked
-      }).then(() => { clearForm(); byId("postStatus").textContent = "Saved."; showPosts(); })
+      })).then(() => { clearForm(); byId("postStatus").textContent = "Saved."; showPosts(); })
         .catch((error) => { byId("postStatus").textContent = error.message || "Could not save."; });
     };
 
@@ -1172,7 +1190,7 @@
               byId("postPublished").checked = !!post.published;
               form.scrollIntoView({ behavior: "smooth" });
             }, "small"),
-            makeButton("Delete", () => { if (confirm("Delete this post?")) backend.deletePost(post.id).then(showPosts); }, "small danger")
+            makeButton("Delete", (event) => { if (confirm("Delete this post?")) runBusy(event.currentTarget, "Deleting…", () => backend.deletePost(post.id)).then(showPosts).catch(() => { byId("postStatus").textContent = "Could not delete the post."; }); }, "small danger")
           );
           row.appendChild(buttons);
           postList.appendChild(row);
